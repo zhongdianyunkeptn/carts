@@ -1,3 +1,6 @@
+# Settings
+*.settings
+
 # Logs
 logs
 *.log
@@ -38,6 +41,9 @@ _testmain.go
 ### Java template
 /target/
 *.class
+
+*.classpath
+*.project
 
 # Mobile Tools for Java (J2ME)
 .mtj.tmp/

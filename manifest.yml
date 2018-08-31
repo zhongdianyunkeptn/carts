@@ -1,0 +1,7 @@
+---
+applications:
+- name: carts
+  memory: 512M
+  instances: 1
+  docker:
+    image: jbraeuer/carts
