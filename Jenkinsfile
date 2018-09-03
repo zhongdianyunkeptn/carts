@@ -48,7 +48,7 @@ pipeline {
             sh "jx step git credentials"
             // so we can retrieve the version in later steps
             sh "echo \$(jx-release-version) > VERSION"
-            sh "mvn versions:set -DnewVersion=\$(cat VERSION)"
+            //sh "mvn versions:set -DnewVersion=\$(cat VERSION)"
           }
           dir ('./charts/carts') {
             container('maven') {
