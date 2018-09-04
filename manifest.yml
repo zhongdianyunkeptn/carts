@@ -4,7 +4,7 @@ applications:
   memory: 512M
   instances: 1
   docker:
-    image: DOCKER-HUB-ACCOUNT/carts
+    image: DOCKER_HUB_ACCOUNT/carts
   env:
     DT_NODE_ID: APPNAME
     DT_CUSTOM_PROP: DEPLOYMENT_GRP_NAME=DTGRP DEPLOYMENT_COLOR=APPCOLOR
