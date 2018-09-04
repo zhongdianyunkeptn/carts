@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.beans.factory.annotation.*;
 import works.weave.socks.cart.cart.CartDAO;
 import works.weave.socks.cart.cart.CartResource;
 import works.weave.socks.cart.entities.Item;
@@ -28,6 +29,8 @@ public class ItemsController {
     private CartsController cartsController;
     @Autowired
     private CartDAO cartDAO;
+    @Value("${delayInMillis}")
+    private String delayInMillis;
 
     @ResponseStatus(HttpStatus.OK)
     @RequestMapping(value = "/{itemId:.*}", produces = MediaType.APPLICATION_JSON_VALUE, method = RequestMethod.GET)
@@ -46,6 +49,14 @@ public class ItemsController {
     public Item addToCart(@PathVariable String customerId, @RequestBody Item item) {
         // If the item does not exist in the cart, create new one in the repository.
         FoundItem foundItem = new FoundItem(() -> cartsController.get(customerId).contents(), () -> item);
+
+        try {
+            int millis = Integer.parseInt(delayInMillis);
+            Thread.sleep(millis);
+        } catch (Throwable e) {
+            // don't do anything
+        }
+
         if (!foundItem.hasItem()) {
             Supplier<Item> newItem = new ItemResource(itemDAO, () -> item).create();
             LOG.debug("Did not find item. Creating item for user: " + customerId + ", " + newItem.get());
