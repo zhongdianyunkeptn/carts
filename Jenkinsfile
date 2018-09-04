@@ -56,7 +56,7 @@ pipeline {
             }
           }
           container('maven') {
-            mvn -DskipTests package  
+            sh "mvn -DskipTests package"  
             sh "./scripts/build.jb.sh"
             //sh 'mvn clean deploy'
 
