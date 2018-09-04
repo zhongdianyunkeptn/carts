@@ -4,4 +4,9 @@ applications:
   memory: 512M
   instances: 1
   docker:
-    image: jbraeuer/carts
+    image: DOCKER-HUB-ACCOUNT/carts
+  env:
+    DT_NODE_ID: APPNAME
+    DT_CUSTOM_PROP: DEPLOYMENT_GRP_NAME=DTGRP DEPLOYMENT_COLOR=APPCOLOR
+    DEPLOYMENT_GRP_NAME: DTGRP
+    DUMMY_VAR: changethisagain2
