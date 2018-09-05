@@ -139,7 +139,7 @@ jobs:
     trigger: false
   - put: carts-test-image
     params:
-      build: git-carts
+      build: git-carts/test
       cache_tag: latest
 
 - name: deploy-carts-to-stage
