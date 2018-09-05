@@ -157,16 +157,16 @@ jobs:
     params:
       PCF_APP_SUFFIX: ((pcf-stage-carts-suffix)) 
       DOCKER_HUB_ACCOUNT: ((docker-hub-username))
-      APP_REPO: git-carts  
-#  - put: dynatrace
-#    params:
-#      monspecserviceenvironment: carts/Staging
-#      pipelinetaskname: deploy-carts-to-stage
-#      deployversion: v1.0 
-#      APP_REPO: git-carts            
+      APP_REPO: git-carts           
   - put: pcf-stage
     params:
-      manifest: app-manifest-output/manifest.yml  
+      manifest: app-manifest-output/manifest.yml
+  - put: dynatrace
+    params:
+      monspecserviceenvironment: carts/Staging
+      pipelinetaskname: deploy-carts-to-stage
+      deployversion: v1.0
+      APP_REPO: git-carts
 
 - name: execute-carts-functional-tests
   serial: true
@@ -220,15 +220,15 @@ jobs:
       DOCKER_HUB_ACCOUNT: ((docker-hub-username))
       APP_REPO: git-carts
       PRODUCTION: true                 
+  - put: pcf-production
+    params:
+      manifest: app-manifest-output/manifest.yml
   - put: dynatrace
     params:
       monspecserviceenvironment: carts/Production
       pipelinetaskname: deploy-carts-to-prod
       deployversion: v1.0 
-      APP_REPO: git-carts     
-  - put: pcf-production
-    params:
-      manifest: app-manifest-output/manifest.yml  
+      APP_REPO: git-carts 
 
 - name: execute-carts-load-tests
   serial: true
