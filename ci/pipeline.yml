@@ -1,0 +1,285 @@
+---
+groups:
+- name: carts-jobs
+  jobs:
+  - build-carts
+  - build-carts-test-image
+  - deploy-carts-to-stage
+  - execute-carts-functional-tests
+  - deploy-carts-to-prod
+  - execute-carts-load-tests
+  - promote-new-version-carts
+
+- name: init-dynatrace
+  jobs: 
+  - init-dynatrace-carts
+
+resource_types:
+- name: dynatrace-resource
+  type: docker-image
+  source:
+    repository: mvilliger/dynatrace-resource
+
+resources:
+
+# GitHub Repositories
+
+- name: git-pipeline
+  type: git
+  source:
+    branch: master
+    uri: https://github.com/dynatrace-sockshop/sockshop.git
+
+- name: git-carts
+  type: git
+  source:
+    branch: master
+    uri: https://github.com/dynatrace-sockshop/carts.git
+
+- name: dynatrace
+  type: dynatrace-resource
+  source:
+    apitoken: ((apitoken))
+    tenanthost: ((tenanthost))
+
+# Docker Images
+
+- name: carts-image
+  type: docker-image
+  source:
+    repository: ((docker-hub-username))/carts
+    username: ((docker-hub-username))
+    password: ((docker-hub-password))
+
+- name: carts-test-image
+  type: docker-image
+  source:
+    repository: ((docker-hub-username))/carts-test
+    username: ((docker-hub-username))
+    password: ((docker-hub-password))
+
+# PCF Environments
+
+- name: pcf-stage
+  type: cf
+  source:
+    api: ((pcf-stage-api))
+    username: ((pcf-stage-deploy-username))
+    password: ((pcf-stage-deploy-password))
+    organization: ((pcf-stage-organization))
+    space: ((pcf-stage-space))
+    skip_cert_check: false
+
+- name: pcf-production
+  type: cf
+  source:
+    api: ((pcf-prod-api))
+    username: ((pcf-prod-deploy-username))
+    password: ((pcf-prod-deploy-password))
+    organization: ((pcf-prod-organization))
+    space: ((pcf-prod-space))
+    skip_cert_check: false
+
+jobs:
+
+# Initialize Dynatrace Custom Device
+
+- name: init-dynatrace-carts
+  public: true
+  plan:
+  - aggregate: 
+    - get: git-pipeline
+    - get: git-carts
+  - task: init-dynatrace-task
+    file: git-pipeline/deploy/cloud-foundry/ci/tasks/init-dynatrace-task.yml
+    params: 
+      apitoken: ((apitoken))
+      tenanthost: ((tenanthost))
+      APP_REPO: git-carts
+
+# CARTS
+
+- name: build-carts
+  plan:
+  - get: git-carts
+    trigger: false
+  - task: mvn-build
+    config:
+      platform: linux
+      image_resource:
+        type: docker-image
+        source: {repository: maven, tag: 3.2-jdk-8}
+      inputs:
+      - name: git-carts
+      outputs:
+      - name: workspace
+      run:
+        path: /bin/sh
+        args:
+        - -exc
+        - |
+          output_dir=workspace
+          cd git-carts
+          mvn -DskipTests package
+          cd ..
+          cp git-carts/target/*.jar git-carts/docker/carts
+          cp -R git-carts/docker/carts/. "${output_dir}/"
+  - put: carts-image
+    params:
+      build: workspace
+      cache_tag: latest
+
+- name: build-carts-test-image
+  serial: true
+  public: true
+  plan:
+  - get: git-carts
+    trigger: false
+  - put: carts-test-image
+    params:
+      build: git-carts
+      cache_tag: latest
+
+- name: deploy-carts-to-stage
+  serial: true
+  public: true
+  plan:
+  - get: git-carts
+    trigger: true
+    passed:
+      - build-carts
+  - get: git-pipeline
+    trigger: false      
+  - task: prepare-app-manifest
+    file: git-pipeline/deploy/cloud-foundry/ci/tasks/app-manifest-prep.yml
+    params:
+      PCF_APP_SUFFIX: ((pcf-stage-carts-suffix)) 
+      DOCKER_HUB_ACCOUNT: ((docker-hub-username))
+      APP_REPO: git-carts  
+  - put: dynatrace
+    params:
+      monspecserviceenvironment: carts/Staging
+      pipelinetaskname: deploy-carts-to-stage
+      deployversion: v1.0 
+      APP_REPO: git-carts            
+  - put: pcf-stage
+    params:
+      manifest: app-manifest-output/manifest.yml  
+
+- name: execute-carts-functional-tests
+  serial: true
+  public: true
+  plan:
+  - aggregate:
+    - get: git-carts
+      trigger: true
+      passed:
+        - deploy-carts-to-stage
+    - get: carts-test-image
+      passed:
+        - build-carts-test-image
+  - task: run-functional-tests
+    image: carts-test-image
+    config:
+      platform: linux
+      inputs:
+      - name: git-carts
+      run:
+        dir: git-carts
+        path: /bin/sh
+        args:
+        - -exc
+        - |
+          mvn -q test
+          
+- name: deploy-carts-to-prod
+  serial: true
+  public: true
+  plan:
+  - get: git-carts
+    trigger: true
+    passed:
+      - execute-carts-functional-tests
+  - get: git-pipeline
+    trigger: false      
+  - task: get-current-app-color
+    file: git-pipeline/deploy/cloud-foundry/ci/tasks/current-app-get-info.yml
+    params:
+      PCF_APP_SUFFIX: ((pcf-prod-carts-suffix))
+      PCF_API: ((pcf-prod-api))
+      PCF_ORG: ((pcf-prod-organization))
+      PCF_USER: ((pcf-prod-deploy-username))
+      PCF_PWD: ((pcf-prod-deploy-password))
+      PCF_SPACE: ((pcf-prod-space))   
+  - task: prepare-app-manifest
+    file: git-pipeline/deploy/cloud-foundry/ci/tasks/app-manifest-prep.yml
+    params:
+      PCF_APP_SUFFIX: ((pcf-prod-carts-suffix)) 
+      DOCKER_HUB_ACCOUNT: ((docker-hub-username))
+      APP_REPO: git-carts
+      PRODUCTION: true                 
+  - put: dynatrace
+    params:
+      monspecserviceenvironment: carts/Production
+      pipelinetaskname: deploy-carts-to-prod
+      deployversion: v1.0 
+      APP_REPO: git-carts     
+  - put: pcf-production
+    params:
+      manifest: app-manifest-output/manifest.yml  
+
+- name: execute-carts-load-tests
+  serial: true
+  public: true
+  plan:
+  - aggregate:
+    - get: git-carts
+      trigger: true
+      passed:
+       - deploy-carts-to-prod
+    - get: carts-test-image
+      passed:
+        - build-carts-test-image
+  - task: run-functional-tests
+    image: carts-test-image
+    config:
+      platform: linux
+      inputs:
+      - name: git-carts
+      run:
+        dir: git-carts
+        path: /bin/sh
+        args:
+        - -exc
+        - |
+          jmeter -Dduration=30 -n -t test/load/get_endpoints.jmx
+
+- name: promote-new-version-carts
+  serial: true
+  public: true
+  plan:
+  - get: git-carts
+    trigger: true
+    passed:
+      - execute-carts-load-tests
+  - get: git-pipeline
+    trigger: false      
+  - task: get-current-app-color
+    file: git-pipeline/deploy/cloud-foundry/ci/tasks/current-app-get-info.yml
+    params:
+      PCF_APP_SUFFIX: ((pcf-prod-carts-suffix))
+      PCF_API: ((pcf-prod-api))
+      PCF_ORG: ((pcf-prod-organization))
+      PCF_USER: ((pcf-prod-deploy-username))
+      PCF_PWD: ((pcf-prod-deploy-password))
+      PCF_SPACE: ((pcf-prod-space))   
+  - task: switch-app-routes
+    file: git-pipeline/deploy/cloud-foundry/ci/tasks/update-routes.yml
+    params:
+      PCF_APP_SUFFIX: ((pcf-prod-carts-suffix))
+      PCF_API: ((pcf-prod-api))
+      PCF_ORG: ((pcf-prod-organization))
+      PCF_USER: ((pcf-prod-deploy-username))
+      PCF_PWD: ((pcf-prod-deploy-password))
+      PCF_SPACE: ((pcf-prod-space))
+      PCF_APP_DOMAIN: ((pcf-prod-app-domain))    
