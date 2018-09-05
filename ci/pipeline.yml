@@ -139,7 +139,7 @@ jobs:
     trigger: false
   - put: carts-test-image
     params:
-      build: git-carts
+      build: git-carts/test
       cache_tag: latest
 
 - name: deploy-carts-to-stage
@@ -158,12 +158,12 @@ jobs:
       PCF_APP_SUFFIX: ((pcf-stage-carts-suffix)) 
       DOCKER_HUB_ACCOUNT: ((docker-hub-username))
       APP_REPO: git-carts  
-  - put: dynatrace
-    params:
-      monspecserviceenvironment: carts/Staging
-      pipelinetaskname: deploy-carts-to-stage
-      deployversion: v1.0 
-      APP_REPO: git-carts            
+#  - put: dynatrace
+#    params:
+#      monspecserviceenvironment: carts/Staging
+#      pipelinetaskname: deploy-carts-to-stage
+#      deployversion: v1.0 
+#      APP_REPO: git-carts            
   - put: pcf-stage
     params:
       manifest: app-manifest-output/manifest.yml  
