@@ -1,16 +1,17 @@
-FROM python:3.6-alpine
+FROM maven:3.2-jdk-8
 
-RUN apk add --no-cache \
-		ca-certificates \
-		curl \
-		openssl
+ENV sourcesdir /usr/src/mymaven
 
-ENV DOCKER_BUCKET get.docker.com
-ENV DOCKER_VERSION 1.8.3
+# Install JMeter
+RUN wget https://archive.apache.org/dist/jmeter/binaries/apache-jmeter-4.0.tgz
+RUN tar -xvzf apache-jmeter-4.0.tgz
+RUN rm apache-jmeter-4.0.tgz
 
-RUN set -x \
-	&& curl -fSL "https://${DOCKER_BUCKET}/builds/Linux/x86_64/docker-${DOCKER_VERSION}.tgz" -o docker.tgz \
-	&& tar -xzvf docker.tgz \
-	&& docker -v
+RUN mv apache-jmeter-4.0 /jmeter
 
-RUN pip install requests
+ENV JMETER_HOME /jmeter
+
+ENV PATH $JMETER_HOME/bin:$PATH
+
+# Set Working DIR
+WORKDIR ${sourcesdir}
