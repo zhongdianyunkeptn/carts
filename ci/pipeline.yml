@@ -124,6 +124,8 @@ jobs:
           cd ..
           cp git-carts/target/*.jar git-carts/docker/carts
           cp -R git-carts/docker/carts/. "${output_dir}/"
+      caches:
+        - path: .m2/
   - put: carts-image
     params:
       build: workspace
