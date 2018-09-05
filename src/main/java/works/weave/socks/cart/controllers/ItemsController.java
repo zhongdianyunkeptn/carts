@@ -14,6 +14,7 @@ import works.weave.socks.cart.item.ItemDAO;
 import works.weave.socks.cart.item.ItemResource;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Supplier;
 
 import static org.slf4j.LoggerFactory.getLogger;
@@ -36,6 +37,18 @@ public class ItemsController {
     @RequestMapping(value = "/{itemId:.*}", produces = MediaType.APPLICATION_JSON_VALUE, method = RequestMethod.GET)
     public Item get(@PathVariable String customerId, @PathVariable String itemId) {
         return new FoundItem(() -> getItems(customerId), () -> new Item(itemId)).get();
+    }
+
+    @ResponseStatus(HttpStatus.OK)
+    @RequestMapping(value = "/delay/{delay}", method = RequestMethod.GET)
+    public void setDelayInMillis(@PathVariable("delay") Optional<String> delayInMillis) {
+        String newDelay = "0";
+
+        if (delayInMillis.isPresent()) {
+            newDelay = delayInMillis.get();
+        }
+
+        this.delayInMillis = newDelay;
     }
 
     @ResponseStatus(HttpStatus.OK)
