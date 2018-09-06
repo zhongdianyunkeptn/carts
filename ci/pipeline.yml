@@ -43,14 +43,16 @@ resources:
     apitoken: ((apitoken))
     tenanthost: ((tenanthost))
 
-# Docker Images
-
-- name: carts-image
-  type: docker-image
+- name: carts-release-bucket
+  type: s3
   source:
-    repository: ((docker-hub-username))/carts
-    username: ((docker-hub-username))
-    password: ((docker-hub-password))
+    region_name: eu-west-1
+    versioned_file: carts/carts.jar
+    bucket: orders-release-bucket
+    access_key_id: ((s3-access-key-id))
+    secret_access_key: ((s3-secret-access-key))
+
+# Docker Images
 
 - name: carts-test-image
   type: docker-image
@@ -127,10 +129,9 @@ jobs:
           cp -R git-carts/docker/carts/. "${output_dir}/"
       caches:
         - path: .m2/
-  - put: carts-image
+  - put: carts-release-bucket
     params:
-      build: workspace
-      cache_tag: latest
+      file: workspace/carts.jar
 
 - name: build-carts-test-image
   serial: true
@@ -151,6 +152,9 @@ jobs:
     trigger: true
     passed:
       - build-carts
+  - get: carts-release-bucket
+    passed:
+      - build-carts
   - get: git-pipeline
     trigger: false      
   - task: prepare-app-manifest
@@ -159,15 +163,16 @@ jobs:
       PCF_APP_SUFFIX: ((pcf-stage-carts-suffix)) 
       DOCKER_HUB_ACCOUNT: ((docker-hub-username))
       APP_REPO: git-carts           
-  - put: pcf-stage
-    params:
-      manifest: app-manifest-output/manifest.yml
   - put: dynatrace
     params:
       monspecserviceenvironment: carts/Staging
       pipelinetaskname: deploy-carts-to-stage
       deployversion: v1.0
       APP_REPO: git-carts
+  - put: pcf-stage
+    params:
+      path: carts-release-bucket/carts.jar
+      manifest: app-manifest-output/manifest.yml
 
 - name: execute-carts-functional-tests
   serial: true
@@ -203,6 +208,7 @@ jobs:
     trigger: true
     passed:
       - execute-carts-functional-tests
+  - get: carts-release-bucket
   - get: git-pipeline
     trigger: false      
   - task: get-current-app-color
@@ -221,15 +227,16 @@ jobs:
       DOCKER_HUB_ACCOUNT: ((docker-hub-username))
       APP_REPO: git-carts
       PRODUCTION: true                 
-  - put: pcf-production
-    params:
-      manifest: app-manifest-output/manifest.yml
   - put: dynatrace
     params:
       monspecserviceenvironment: carts/Production
       pipelinetaskname: deploy-carts-to-prod
       deployversion: v1.0 
       APP_REPO: git-carts 
+  - put: pcf-production
+    params:
+      path: carts-release-bucket/carts.jar
+      manifest: app-manifest-output/manifest.yml  
 
 - name: execute-carts-load-tests
   serial: true
