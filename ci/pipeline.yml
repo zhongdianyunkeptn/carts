@@ -8,6 +8,7 @@ groups:
   - execute-carts-functional-tests
   - deploy-carts-to-prod
   - execute-carts-load-tests
+  - validate-carts-load-test
   - promote-new-version-carts
 
 - name: init-dynatrace
@@ -255,6 +256,33 @@ jobs:
         - -exc
         - |
           jmeter -Dduration=30 -n -t test/load/get_endpoints.jmx
+
+- name: validate-carts-load-test
+  serial: true
+  public: true
+  plan:
+  - get: git-carts
+    trigger: true
+    passed:
+      - execute-carts-load-tests
+  - get: git-pipeline
+    trigger: false      
+  - task: get-current-app-color
+    file: git-pipeline/deploy/cloud-foundry/ci/tasks/current-app-get-info.yml
+    params:
+      PCF_APP_SUFFIX: ((pcf-prod-carts-suffix))
+      PCF_API: ((pcf-prod-api))
+      PCF_ORG: ((pcf-prod-organization))
+      PCF_USER: ((pcf-prod-deploy-username))
+      PCF_PWD: ((pcf-prod-deploy-password))
+      PCF_SPACE: ((pcf-prod-space))    
+  - task: validate-via-monspec
+    file: git-pipeline/deploy/cloud-foundry/ci/tasks/validate-via-monspec.yml
+    params: 
+      monspeccomparison: carts/Production-$NEXT_APP_COLOR\ToProduction-$CURRENT_APP_COLOR\Last5m
+      apitoken: ((apitoken))
+      tenanthost: ((tenanthost))
+      APP_REPO: git-carts   
 
 - name: promote-new-version-carts
   serial: true
