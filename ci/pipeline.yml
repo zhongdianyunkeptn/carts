@@ -127,8 +127,6 @@ jobs:
           cd ..
           cp git-carts/target/*.jar git-carts/docker/carts
           cp -R git-carts/docker/carts/. "${output_dir}/"
-      caches:
-        - path: .m2/
   - put: carts-release-bucket
     params:
       file: workspace/carts.jar
@@ -209,6 +207,8 @@ jobs:
     passed:
       - execute-carts-functional-tests
   - get: carts-release-bucket
+    passed:
+      - build-carts
   - get: git-pipeline
     trigger: false      
   - task: get-current-app-color
