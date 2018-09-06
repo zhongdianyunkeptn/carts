@@ -29,13 +29,13 @@ resources:
   type: git
   source:
     branch: master
-    uri: https://github.com/dynatrace-sockshop/sockshop.git
+    uri: https://github.com/acm-workshop-concourse/sockshop.git
 
 - name: git-carts
   type: git
   source:
     branch: master
-    uri: https://github.com/dynatrace-sockshop/carts.git
+    uri: https://github.com/acm-workshop-concourse/carts.git
 
 - name: dynatrace
   type: dynatrace-resource
