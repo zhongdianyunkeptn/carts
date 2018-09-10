@@ -3,9 +3,8 @@ groups:
 - name: carts-jobs
   jobs:
   - build-carts
-  - build-carts-test-image
   - deploy-carts-to-stage
-  - execute-carts-functional-tests
+  - health-check
   - deploy-carts-to-prod
   - execute-carts-load-tests
   - validate-carts-load-test
@@ -15,6 +14,10 @@ groups:
   jobs: 
   - init-dynatrace-carts
 
+- name: jmeter-test
+  jobs:
+  - build-jmeter-test-image
+
 resource_types:
 - name: dynatrace-resource
   type: docker-image
@@ -23,13 +26,17 @@ resource_types:
 
 resources:
 
-# GitHub Repositories
-
 - name: git-pipeline
   type: git
   source:
     branch: master
     uri: https://github.com/acm-workshop-concourse/sockshop.git
+
+- name: git-jmeter-as-container
+  type: git
+  source:
+    branch: master
+    uri: https://github.com/acm-workshop/jmeter-as-container.git
 
 - name: git-carts
   type: git
@@ -52,12 +59,10 @@ resources:
     access_key_id: ((s3-access-key-id))
     secret_access_key: ((s3-secret-access-key))
 
-# Docker Images
-
-- name: carts-test-image
+- name: jmeter-test-image
   type: docker-image
   source:
-    repository: ((docker-hub-username))/carts-test
+    repository: ((docker-hub-repository))/jmeter-test
     username: ((docker-hub-username))
     password: ((docker-hub-password))
 
@@ -100,6 +105,19 @@ jobs:
       tenanthost: ((tenanthost))
       APP_REPO: git-carts
 
+# Build jMeter Test Image
+
+- name: build-jmeter-test-image
+  serial: true
+  public: true
+  plan:
+  - get: git-carts
+    trigger: false
+  - put: jmeter-test-image
+    params:
+      build: git-carts/test
+      cache_tag: latest
+
 # CARTS
 
 - name: build-carts
@@ -131,17 +149,6 @@ jobs:
     params:
       file: workspace/carts.jar
 
-- name: build-carts-test-image
-  serial: true
-  public: true
-  plan:
-  - get: git-carts
-    trigger: false
-  - put: carts-test-image
-    params:
-      build: git-carts/test
-      cache_tag: latest
-
 - name: deploy-carts-to-stage
   serial: true
   public: true
@@ -172,7 +179,7 @@ jobs:
       path: carts-release-bucket/carts.jar
       manifest: app-manifest-output/manifest.yml
 
-- name: execute-carts-functional-tests
+- name: health-check
   serial: true
   public: true
   plan:
@@ -181,22 +188,20 @@ jobs:
       trigger: true
       passed:
         - deploy-carts-to-stage
-    - get: carts-test-image
-      passed:
-        - build-carts-test-image
-  - task: run-functional-tests
-    image: carts-test-image
-    config:
-      platform: linux
-      inputs:
-      - name: git-carts
-      run:
-        dir: git-carts
-        path: /bin/sh
-        args:
-        - -exc
-        - |
-          mvn -q test
+    - get: git-jmeter-as-container
+    - get: git-pipeline
+  - task: run-load-tests
+    file: git-pipeline/deploy/cloud-foundry/ci/tasks/health-test.yml
+    params:
+      APP_REPO: git-jmeter-as-container
+      FUNC_VALIDATION: yes
+      PRODUCTION: false
+      SCRIPT_NAME: basiccheck.jmx
+      PCF_APP_SUFFIX: ((pcf-stage-carts-suffix))
+      PCF_APP_DOMAIN: ((pcf-prod-app-domain))
+      DT_LTN: HealthCheck
+      VUCount: 1
+      LoopCount: 1
           
 - name: deploy-carts-to-prod
   serial: true
@@ -205,7 +210,7 @@ jobs:
   - get: git-carts
     trigger: true
     passed:
-      - execute-carts-functional-tests
+      - health-check
   - get: carts-release-bucket
     passed:
       - build-carts
@@ -247,9 +252,6 @@ jobs:
       trigger: true
       passed:
        - deploy-carts-to-prod
-    - get: carts-test-image
-      passed:
-        - build-carts-test-image
     - get: git-pipeline
   - task: get-current-app-color
     file: git-pipeline/deploy/cloud-foundry/ci/tasks/current-app-get-info.yml
@@ -260,20 +262,20 @@ jobs:
       PCF_USER: ((pcf-prod-deploy-username))
       PCF_PWD: ((pcf-prod-deploy-password))
       PCF_SPACE: ((pcf-prod-space))   
-  - task: run-functional-tests
-    image: carts-test-image
-    config:
-      platform: linux
-      inputs:
-      - name: git-carts
-      - name: current-app-info
-      run:
-        path: /bin/sh
-        args:
-        - -exc
-        - |
-          cat ./current-app-info/next-app.txt
-          jmeter -n -t ./git-carts/test/load/cart_load.jmx -e -l result.tlf -JSERVER_URL=$(cat ./current-app-info/next-app.txt)-carts.apps.pcfeu.dev.dynatracelabs.com -JVUCount=10 -JLoopCount=10
+  - task: run-load-tests
+    file: git-pipeline/deploy/cloud-foundry/ci/tasks/load-tests.yml
+    params:
+      APP_REPO: git-carts
+      PRODUCTION: true
+      PCF_APP_SUFFIX: ((pcf-prod-carts-suffix))
+      PCF_APP_DOMAIN: ((pcf-prod-app-domain))   
+  - task: push-dynatrace-monspec-data
+    file: git-pipeline/deploy/cloud-foundry/ci/tasks/push-dynatrace-monspec-data.yml
+    params: 
+      monspecserviceenvironment: orders/Production-$NEXT_APP_COLOR
+      apitoken: ((apitoken))
+      tenanthost: ((tenanthost))
+      APP_REPO: git-carts  
 
 - name: validate-carts-load-test
   serial: true
