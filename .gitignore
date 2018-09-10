@@ -123,3 +123,5 @@ weave-ecs-demo-key.pem
 
 # Ignore Vagrant cache files
 *.vagrant/
+# ignore concourse credentials
+credentials.yml
