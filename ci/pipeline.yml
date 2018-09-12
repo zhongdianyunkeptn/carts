@@ -54,10 +54,21 @@ resources:
   type: s3
   source:
     region_name: eu-west-1
-    versioned_file: carts/carts.jar
-    bucket: orders-release-bucket
+    regexp: carts/carts-(.*).jar
+    bucket: ((s3-bucket))
     access_key_id: ((s3-access-key-id))
     secret_access_key: ((s3-secret-access-key))
+
+- name: version
+  type: semver
+  source:
+    driver: s3
+    initial_version: 0.0.1
+    region_name: eu-west-1
+    bucket: ((s3-bucket))
+    access_key_id: ((s3-access-key-id))
+    secret_access_key: ((s3-secret-access-key))
+    key: carts/version
 
 - name: jmeter-test-image
   type: docker-image
@@ -124,6 +135,8 @@ jobs:
   plan:
   - get: git-carts
     trigger: false
+  - get: version
+    params: { bump: patch }
   - task: mvn-build
     config:
       platform: linux
@@ -132,6 +145,7 @@ jobs:
         source: {repository: maven, tag: 3.2-jdk-8}
       inputs:
       - name: git-carts
+      - name: version
       outputs:
       - name: workspace
       run:
@@ -143,11 +157,11 @@ jobs:
           cd git-carts
           mvn -DskipTests package
           cd ..
-          cp git-carts/target/*.jar git-carts/docker/carts
-          cp -R git-carts/docker/carts/. "${output_dir}/"
+          mv git-carts/target/carts.jar git-carts/target/carts-$(cat version/number).jar
+          cp git-carts/target/carts-*.jar "${output_dir}/"
   - put: carts-release-bucket
     params:
-      file: workspace/carts.jar
+      file: workspace/carts-*.jar
 
 - name: deploy-carts-to-stage
   serial: true
@@ -176,7 +190,7 @@ jobs:
       APP_REPO: git-carts
   - put: pcf-stage
     params:
-      path: carts-release-bucket/carts.jar
+      path: carts-release-bucket/carts-*.jar
       manifest: app-manifest-output/manifest.yml
 
 - name: health-check
@@ -240,7 +254,7 @@ jobs:
       APP_REPO: git-carts 
   - put: pcf-production
     params:
-      path: carts-release-bucket/carts.jar
+      path: carts-release-bucket/carts-*.jar
       manifest: app-manifest-output/manifest.yml  
 
 - name: execute-carts-load-tests
@@ -272,7 +286,7 @@ jobs:
   - task: push-dynatrace-monspec-data
     file: git-pipeline/deploy/cloud-foundry/ci/tasks/push-dynatrace-monspec-data.yml
     params: 
-      monspecserviceenvironment: orders/Production-$NEXT_APP_COLOR
+      monspecserviceenvironment: carts/Production-$NEXT_APP_COLOR
       apitoken: ((apitoken))
       tenanthost: ((tenanthost))
       APP_REPO: git-carts  
@@ -312,6 +326,8 @@ jobs:
     trigger: true
     passed:
       - validate-carts-load-test
+  - get: version
+    params: { bump: patch }
   - get: git-pipeline
     trigger: false      
   - task: get-current-app-color
@@ -332,4 +348,6 @@ jobs:
       PCF_USER: ((pcf-prod-deploy-username))
       PCF_PWD: ((pcf-prod-deploy-password))
       PCF_SPACE: ((pcf-prod-space))
-      PCF_APP_DOMAIN: ((pcf-prod-app-domain))    
+      PCF_APP_DOMAIN: ((pcf-prod-app-domain))
+  - put: version
+    params: { file: version/number }
