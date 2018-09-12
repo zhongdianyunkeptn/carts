@@ -30,19 +30,19 @@ resources:
   type: git
   source:
     branch: master
-    uri: https://github.com/acm-workshop-concourse/sockshop.git
+    uri: https://github.com/((workshop-repository))/sockshop.git
 
 - name: git-jmeter-as-container
   type: git
   source:
     branch: master
-    uri: https://github.com/acm-workshop/jmeter-as-container.git
+    uri: https://github.com/((workshop-repository))/jmeter-as-container.git
 
 - name: git-carts
   type: git
   source:
     branch: master
-    uri: https://github.com/acm-workshop-concourse/carts.git
+    uri: https://github.com/((workshop-repository))/carts.git
 
 - name: dynatrace
   type: dynatrace-resource
