@@ -153,12 +153,22 @@ jobs:
         args:
         - -exc
         - |
+          # Caching Maven
+          export ROOT_FOLDER=$( pwd )
+          M2_HOME="${HOME}/.m2"
+          M2_CACHE="${ROOT_FOLDER}/maven"
+          echo "Generating symbolic link for Maven cache"
+          ln -s "${M2_CACHE}" "${M2_HOME}"
+
+          # Build App
           output_dir=workspace
           cd git-carts
           mvn -DskipTests package
           cd ..
           mv git-carts/target/carts.jar git-carts/target/carts-$(cat version/number).jar
           cp git-carts/target/carts-*.jar "${output_dir}/"
+      caches:
+        - path: maven
   - put: carts-release-bucket
     params:
       file: workspace/carts-*.jar
