@@ -9,14 +9,15 @@ resource_types:
   type: docker-image
   source:
     repository: mvilliger/dynatrace-resource
+#    tag: 0.0.1 
 
 resources:
-#- name: dynatrace
-#  type: dynatrace-resource
-#  source:
-#    apitoken: ((apitoken))
-#    tenanthost: ((tenanthost))
-#  webhook_token: DTTOKEN
+- name: dynatrace
+  type: dynatrace-resource
+  source:
+    apitoken: ((apitoken))
+    tenanthost: ((tenanthost))
+  webhook_token: DTTOKEN
 
 #- name: git-webhook
 #  type: git
@@ -26,15 +27,18 @@ resources:
 #    branch: master
 #    uri: https://github.com/johannes-b/webhook.git
 
-- name: webhook-time
-  type: time
-  source: {interval: 5m}
-  webhook_token: DTTOKEN
+#- name: webhook-time
+#  type: time
+#  source:
+#    interval: 2m
+#    start: 10:00 AM
+#    stop: 12:00 AM
+#  webhook_token: DTTOKEN
 
 jobs:
 - name: test-webhook
   plan:
-  - get: webhook-time
+  - get: dynatrace
     trigger: true
   - task: run-task
     config:
