@@ -62,13 +62,17 @@ resources:
 - name: version
   type: semver
   source:
-    driver: s3
-    initial_version: 0.0.1
-    region_name: eu-west-1
-    bucket: ((s3-bucket))
-    access_key_id: ((s3-access-key-id))
-    secret_access_key: ((s3-secret-access-key))
-    key: carts/version
+#    driver: s3
+#    initial_version: 0.0.1
+#    region_name: eu-west-1
+#    bucket: ((s3-bucket))
+#    access_key_id: ((s3-access-key-id))
+#    secret_access_key: ((s3-secret-access-key))
+#    key: carts/version
+    driver: git
+    uri: https://github.com/((workshop-repository))/carts.git
+    branch: master
+    file: version
 
 - name: jmeter-test-image
   type: docker-image
@@ -136,7 +140,7 @@ jobs:
   - get: git-carts
     trigger: false
   - get: version
-    params: { bump: patch }
+    params: { pre: build }
   - task: mvn-build
     config:
       platform: linux
@@ -357,5 +361,5 @@ jobs:
       PCF_PWD: ((pcf-prod-deploy-password))
       PCF_SPACE: ((pcf-prod-space))
       PCF_APP_DOMAIN: ((pcf-prod-app-domain))
-  - put: version
-    params: { file: version/number }
+#  - put: version
+#    params: { file: version/number }
