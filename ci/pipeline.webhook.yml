@@ -8,12 +8,13 @@ resource_types:
 - name: dynatrace-resource
   type: docker-image
   source:
-    repository: mvilliger/dynatrace-resource
+    repository: jbraeuer/dynatrace-resource
 #    tag: 0.0.1 
 
 resources:
 - name: dynatrace
   type: dynatrace-resource
+  check_every: 2m
   source:
     apitoken: ((apitoken))
     tenanthost: ((tenanthost))
