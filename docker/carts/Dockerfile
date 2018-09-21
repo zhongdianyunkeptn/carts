@@ -1,4 +1,4 @@
-FROM dynatracesockshop/run-alpine
+FROM java:openjdk-8-alpine
 
 WORKDIR /usr/src/app
 COPY *.jar ./app.jar
