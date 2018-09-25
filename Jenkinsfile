@@ -84,6 +84,19 @@ pipeline {
           }
         }
       }
+     stage('DT Deploy Event') {
+       agent {
+         label "jenkins-dtcli"
+       }
+       steps {              
+         container('dtcli') {
+           checkout scm
+
+           sh "python3 /dtcli/dtcli.py config apitoken ${DT_API_TOKEN} tenanthost ${DT_TENANT_URL}"
+           sh "python3 /dtcli/dtcli.py monspec pushdeploy monspec/${APP_NAME}_monspec.json monspec/${APP_NAME}_pipelineinfo.json ${APP_NAME}/Staging JenkinsBuild_${BUILD_NUMBER} ${BUILD_NUMBER}"
+         }
+       }
+     }
 //      stage('Health Check Staging') {
 //        steps {
 //          build job: "${env.ORG}/jmeter-as-container/master", 
