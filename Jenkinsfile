@@ -84,58 +84,57 @@ pipeline {
           }
         }
       }
-      stage('Health Check Staging') {
-        steps {
-          build job: "${env.ORG}/jmeter-as-container/master", 
-            parameters: [
-              string(name: 'BUILD_JMETER', value: 'no'), 
-              string(name: 'SCRIPT_NAME', value: 'basiccheck.jmx'), 
-              string(name: 'SERVER_URL', value: "${env.APP_NAME}.jx-staging.35.233.18.9.nip.io"),
-              string(name: 'SERVER_PORT', value: '80'),
-              string(name: 'CHECK_PATH', value: '/health'),
-              string(name: 'VUCount', value: '1'),
-              string(name: 'LoopCount', value: '1'),
-              string(name: 'DT_LTN', value: "HealthCheck_${BUILD_NUMBER}"),
-              string(name: 'FUNC_VALIDATION', value: 'yes'),
-              string(name: 'AVG_RT_VALIDATION', value: '0')
-            ]
-        }
-      }
-      stage('Functional Check Staging') {
-        steps {
-          build job: "${env.ORG}/jmeter-as-container/master", 
-            parameters: [
-              string(name: 'BUILD_JMETER', value: 'no'), 
-              string(name: 'SCRIPT_NAME', value: 'cart_load.jmx'), 
-              string(name: 'SERVER_URL', value: "${env.APP_NAME}.jx-staging.35.233.18.9.nip.io"),
-              string(name: 'SERVER_PORT', value: '80'),
-              string(name: 'CHECK_PATH', value: '/health'),
-              string(name: 'VUCount', value: '1'),
-              string(name: 'LoopCount', value: '1'),
-              string(name: 'DT_LTN', value: "FuncCheck_${BUILD_NUMBER}"),
-              string(name: 'FUNC_VALIDATION', value: 'yes'),
-              string(name: 'AVG_RT_VALIDATION', value: '0')
-            ]
-        }
-      }
-      stage('Performance Check Staging') {
-        steps {
-          build job: "${env.ORG}/jmeter-as-container/master", 
-            parameters: [
-              string(name: 'BUILD_JMETER', value: 'no'), 
-              string(name: 'SCRIPT_NAME', value: 'cart_load.jmx'), 
-              string(name: 'SERVER_URL', value: "${env.APP_NAME}.jx-staging.35.233.18.9.nip.io"),
-              string(name: 'SERVER_PORT', value: '80'),
-              string(name: 'CHECK_PATH', value: '/health'),
-              string(name: 'VUCount', value: '10'),
-              string(name: 'LoopCount', value: '250'),
-              string(name: 'DT_LTN', value: "PerfCheck_${BUILD_NUMBER}"),
-              string(name: 'FUNC_VALIDATION', value: 'no'),
-              string(name: 'AVG_RT_VALIDATION', value: '250')
-            ]
-        }
-      }
-
+//      stage('Health Check Staging') {
+//        steps {
+//          build job: "${env.ORG}/jmeter-as-container/master", 
+//            parameters: [
+//              string(name: 'BUILD_JMETER', value: 'no'), 
+//              string(name: 'SCRIPT_NAME', value: 'basiccheck.jmx'), 
+//              string(name: 'SERVER_URL', value: "${env.APP_NAME}.jx-staging.35.233.18.9.nip.io"),
+//              string(name: 'SERVER_PORT', value: '80'),
+//              string(name: 'CHECK_PATH', value: '/health'),
+//              string(name: 'VUCount', value: '1'),
+//              string(name: 'LoopCount', value: '1'),
+//              string(name: 'DT_LTN', value: "HealthCheck_${BUILD_NUMBER}"),
+//              string(name: 'FUNC_VALIDATION', value: 'yes'),
+//              string(name: 'AVG_RT_VALIDATION', value: '0')
+//            ]
+//        }
+//      }
+//      stage('Functional Check Staging') {
+//        steps {
+//          build job: "${env.ORG}/jmeter-as-container/master", 
+//            parameters: [
+//              string(name: 'BUILD_JMETER', value: 'no'), 
+//              string(name: 'SCRIPT_NAME', value: 'cart_load.jmx'), 
+//              string(name: 'SERVER_URL', value: "${env.APP_NAME}.jx-staging.35.233.18.9.nip.io"),
+//              string(name: 'SERVER_PORT', value: '80'),
+//              string(name: 'CHECK_PATH', value: '/health'),
+//              string(name: 'VUCount', value: '1'),
+//              string(name: 'LoopCount', value: '1'),
+//              string(name: 'DT_LTN', value: "FuncCheck_${BUILD_NUMBER}"),
+//              string(name: 'FUNC_VALIDATION', value: 'yes'),
+//              string(name: 'AVG_RT_VALIDATION', value: '0')
+//            ]
+//        }
+//      }
+//      stage('Performance Check Staging') {
+//        steps {
+//          build job: "${env.ORG}/jmeter-as-container/master", 
+//            parameters: [
+//              string(name: 'BUILD_JMETER', value: 'no'), 
+//              string(name: 'SCRIPT_NAME', value: 'cart_load.jmx'), 
+//              string(name: 'SERVER_URL', value: "${env.APP_NAME}.jx-staging.35.233.18.9.nip.io"),
+//              string(name: 'SERVER_PORT', value: '80'),
+//              string(name: 'CHECK_PATH', value: '/health'),
+//              string(name: 'VUCount', value: '10'),
+//              string(name: 'LoopCount', value: '250'),
+//              string(name: 'DT_LTN', value: "PerfCheck_${BUILD_NUMBER}"),
+//              string(name: 'FUNC_VALIDATION', value: 'no'),
+//              string(name: 'AVG_RT_VALIDATION', value: '250')
+//            ]
+//        }
+//      }
     }
     post {
         always {
