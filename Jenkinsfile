@@ -103,7 +103,7 @@ pipeline {
            parameters: [
              string(name: 'BUILD_JMETER', value: 'no'), 
              string(name: 'SCRIPT_NAME', value: 'basiccheck.jmx'), 
-             string(name: 'SERVER_URL', value: "${env.APP_NAME}.jx-staging.35.233.18.9.nip.io"),
+             string(name: 'SERVER_URL', value: "${env.APP_NAME}.jx-staging.35.233.15.115.nip.io"),
              string(name: 'SERVER_PORT', value: '80'),
              string(name: 'CHECK_PATH', value: '/health'),
              string(name: 'VUCount', value: '1'),
@@ -120,7 +120,7 @@ pipeline {
            parameters: [
              string(name: 'BUILD_JMETER', value: 'no'), 
              string(name: 'SCRIPT_NAME', value: 'cart_load.jmx'), 
-             string(name: 'SERVER_URL', value: "${env.APP_NAME}.jx-staging.35.233.18.9.nip.io"),
+             string(name: 'SERVER_URL', value: "${env.APP_NAME}.jx-staging.35.233.15.115.nip.io"),
              string(name: 'SERVER_PORT', value: '80'),
              string(name: 'CHECK_PATH', value: '/health'),
              string(name: 'VUCount', value: '1'),
@@ -137,7 +137,7 @@ pipeline {
            parameters: [
              string(name: 'BUILD_JMETER', value: 'no'), 
              string(name: 'SCRIPT_NAME', value: 'cart_load.jmx'), 
-             string(name: 'SERVER_URL', value: "${env.APP_NAME}.jx-staging.35.233.18.9.nip.io"),
+             string(name: 'SERVER_URL', value: "${env.APP_NAME}.jx-staging.35.233.15.115.nip.io"),
              string(name: 'SERVER_PORT', value: '80'),
              string(name: 'CHECK_PATH', value: '/health'),
              string(name: 'VUCount', value: '10'),
