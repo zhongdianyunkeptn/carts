@@ -106,7 +106,7 @@ pipeline {
               [
                 meTypes: [[meType: 'SERVICE']], 
                 tags: [
-                  [context: 'CONTEXTLESS', key: 'app', value: '${APP_NAME}'], 
+                  [context: 'CONTEXTLESS', key: 'app', value: "${env.APP_NAME}"], 
                   [context: 'CONTEXTLESS', key: 'environment', value: 'jx-staging']
                 ]
               ]
@@ -159,7 +159,7 @@ pipeline {
               [
                 meTypes: [[meType: 'SERVICE']], 
                 tags: [
-                  [context: 'CONTEXTLESS', key: 'app', value: '${APP_NAME}'], 
+                  [context: 'CONTEXTLESS', key: 'app', value: "${env.APP_NAME}"], 
                   [context: 'CONTEXTLESS', key: 'environment', value: 'jx-staging']
                 ]
               ]
