@@ -132,7 +132,7 @@ pipeline {
             string(name: 'LoopCount', value: '1'),
             string(name: 'DT_LTN', value: "HealthCheck_${BUILD_NUMBER}"),
             string(name: 'FUNC_VALIDATION', value: 'yes'),
-            string(name: 'AVG_RT_VALIDATION', value: '0')
+            string(name: 'AVG_RT_VALIDATION', value: '0'),
             string(name: 'RETRY_ON_ERROR', value: 'yes')
           ]
       }
