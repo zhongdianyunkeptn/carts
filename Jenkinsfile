@@ -144,7 +144,7 @@ pipeline {
       steps {
         build job: "${env.ORG}/jmeter-tests/master",
           parameters: [
-            string(name: 'SCRIPT_NAME', value: '${env.APP_NAME}_load.jmx'),
+            string(name: 'SCRIPT_NAME', value: "${env.APP_NAME}_load.jmx"),
             string(name: 'SERVER_URL', value: "${env.APP_NAME}.${APP_STAGING_DOMAIN}"),
             string(name: 'SERVER_PORT', value: '80'),
             string(name: 'CHECK_PATH', value: '/health'),
