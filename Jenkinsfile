@@ -80,6 +80,9 @@ pipeline {
 
             // promote to staging
             sh 'jx promote -b --env staging --timeout 1h --version \$(cat ../../VERSION) $APP_NAME'
+
+            // just a quick curl against the deployed app
+            sh "curl http://${env.APP_NAME}.${APP_STAGING_DOMAIN} || true"
           }
         }
       }
@@ -119,8 +122,8 @@ pipeline {
     }
     stage('Health Check Staging') {
       steps {
-        // Lets give the app 10 extra seconds to be up&running
-        sleep 10
+        // Lets give the app 30 extra seconds to be up&running
+        sleep 30
 
         build job: "${env.ORG}/jmeter-tests/master",
           parameters: [
@@ -141,7 +144,7 @@ pipeline {
       steps {
         build job: "${env.ORG}/jmeter-tests/master",
           parameters: [
-            string(name: 'SCRIPT_NAME', value: 'cart_load.jmx'),
+            string(name: 'SCRIPT_NAME', value: '${env.APP_NAME}_load.jmx'),
             string(name: 'SERVER_URL', value: "${env.APP_NAME}.${APP_STAGING_DOMAIN}"),
             string(name: 'SERVER_PORT', value: '80'),
             string(name: 'CHECK_PATH', value: '/health'),
@@ -172,7 +175,7 @@ pipeline {
           ]) {
           build job: "${env.ORG}/jmeter-tests/master",
             parameters: [
-              string(name: 'SCRIPT_NAME', value: 'cart_load.jmx'),
+              string(name: 'SCRIPT_NAME', value: "${env.APP_NAME}_load.jmx"),
               string(name: 'SERVER_URL', value: "${env.APP_NAME}.${APP_STAGING_DOMAIN}"),
               string(name: 'SERVER_PORT', value: '80'),
               string(name: 'CHECK_PATH', value: '/health'),
@@ -185,7 +188,7 @@ pipeline {
         }
 
         // Now we use the Performance Signature Plugin to pull in Dynatrace Metrics based on the spec file
-        perfSigDynatraceReports envId: 'Dynatrace Tenant', nonFunctionalFailure: 1, specFile: 'monspec/carts_perfsig.json'
+        perfSigDynatraceReports envId: 'Dynatrace Tenant', nonFunctionalFailure: 1, specFile: "monspec/${env.APP_NAME}_perfsig.json"
       }
     }
   }
