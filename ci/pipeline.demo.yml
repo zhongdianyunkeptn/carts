@@ -144,7 +144,7 @@ jobs:
 - name: build-carts
   plan:
   - get: git-carts
-    trigger: false
+    trigger: true
   - get: version
     params: { pre: build }
   - task: mvn-build
@@ -457,5 +457,5 @@ jobs:
       PCF_APP_SUFFIX: ((pcf-prod-carts-suffix))
       PCF_APP_DOMAIN: ((pcf-prod-app-domain))
       DT_LTN: LoadTest
-      VUCount: 80
+      VUCount: 200
       LoopCount: 20
