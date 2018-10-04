@@ -37,6 +37,12 @@ public class HealthCheckController {
           database.setStatus("err");
        }
 
+       try {
+        Thread.sleep(300);
+       } catch (Throwable e) {
+        // don't do anything
+       }
+
        healthChecks.add(app);
        healthChecks.add(database);
 

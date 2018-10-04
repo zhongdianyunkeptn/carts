@@ -141,7 +141,7 @@ jobs:
 - name: build-carts
   plan:
   - get: git-carts
-    trigger: false
+    trigger: true
   - get: version
     params: { pre: build }
   - task: mvn-build

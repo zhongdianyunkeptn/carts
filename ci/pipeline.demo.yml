@@ -457,5 +457,5 @@ jobs:
       PCF_APP_SUFFIX: ((pcf-prod-carts-suffix))
       PCF_APP_DOMAIN: ((pcf-prod-app-domain))
       DT_LTN: LoadTest
-      VUCount: 200
+      VUCount: 80
       LoopCount: 20
