@@ -434,8 +434,8 @@ jobs:
   plan:
   - aggregate:
     - get: git-carts
-      passed:
-       - upload-carts-git-release
+#      passed:
+#       - upload-carts-git-release
     - get: git-jmeter-as-container
     - get: git-pipeline   
   - task: get-current-app-color
@@ -457,5 +457,5 @@ jobs:
       PCF_APP_SUFFIX: ((pcf-prod-carts-suffix))
       PCF_APP_DOMAIN: ((pcf-prod-app-domain))
       DT_LTN: LoadTest
-      VUCount: 80
+      VUCount: 300
       LoopCount: 20
