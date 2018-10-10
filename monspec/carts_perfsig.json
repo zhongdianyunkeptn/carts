@@ -1,0 +1,24 @@
+{
+    "timeseries" : [
+        {
+            "timeseriesId" : "com.dynatrace.builtin:service.responsetime",
+            "aggregation" : "avg",
+            "tags" : "app:carts,environment:jx-staging"
+        },
+        {
+            "timeseriesId" : "com.dynatrace.builtin:service.responsetime",
+            "aggregation" : "percentile",
+            "tags" : "app:carts,environment:jx-staging"
+        },
+        {
+            "timeseriesId" : "com.dynatrace.builtin:service.server_side_requests",
+            "aggregation" : "count",
+            "tags" : "app:carts,environment:jx-staging"
+        },
+        {
+            "timeseriesId" : "com.dynatrace.builtin:service.serversidefailurerate",
+            "aggregation" : "avg",
+            "tags" : "app:carts,environment:jx-staging"
+        }
+    ]
+}
