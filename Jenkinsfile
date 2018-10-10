@@ -1,6 +1,6 @@
 pipeline {
   agent {
-    label "Jenkins"
+    any
   }
   environment {
     ORG="test"
