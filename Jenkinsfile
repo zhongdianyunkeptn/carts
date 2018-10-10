@@ -1,7 +1,4 @@
 pipeline {
-  agent {
-    label "jenkins-maven"
-  }
   environment {
     ORG="test"
     DOCKER_ID="carts"
