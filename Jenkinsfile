@@ -3,11 +3,33 @@ pipeline {
     label "jenkins-maven"
   }
   environment {
-    ORG = 'acm-workshop'
-    APP_NAME = 'carts'
-    CHARTMUSEUM_CREDS = credentials('jenkins-x-chartmuseum')
+    ORG="test"
+    DOCKER_ID="carts"
+    VERSION="0.1.0-${env.BUILD_NUMBER}"
+  }
+  options {
+    disableConcurrentBuilds()
+    buildDiscarder(logRotator(numToKeepStr: '10'))
+    timeout(time: 60, unit: 'MINUTES')
+    timestamps()
   }
   stages {
+    stage('build') {
+      steps {
+        checkout scm
+        container('maven') {
+          sh "mvn versions:set -DnewVersion=${env.VERSION}"
+          sh "mvn package"
+        }
+      }
+    }
+    stage('docker') {
+      steps {
+        sh "docker build --pull -t ${env.DOCKER_REGISTRY_URL}/library/${env.ORG}/${env.DOCKER_ID}:${env.BUILD_NUMBER} ."
+      }
+    }
+  }
+  /*stages {
     stage('CI Build and push snapshot') {
       when {
         branch 'PR-*'
@@ -99,7 +121,7 @@ pipeline {
           sh "python3 /dtcli/dtcli.py config apitoken ${DT_API_TOKEN} tenanthost ${DT_TENANT_URL}"
           sh "python3 /dtcli/dtcli.py monspec pushdeploy monspec/${APP_NAME}_monspec.json monspec/${APP_NAME}_pipelineinfo.json ${APP_NAME}/Staging JenkinsBuild_${BUILD_NUMBER} ${BUILD_NUMBER}"
         }
-      }*/
+      }*
 
       // #2 or we can use the built-in pipeline step of the Performance Signature Plugin
       steps {
@@ -190,7 +212,7 @@ pipeline {
         // Now we use the Performance Signature Plugin to pull in Dynatrace Metrics based on the spec file
         perfSigDynatraceReports envId: 'Dynatrace Tenant', nonFunctionalFailure: 1, specFile: "monspec/${env.APP_NAME}_perfsig.json"
       }
-    }
+    }*/
   }
   post {
     always {
