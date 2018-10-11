@@ -22,20 +22,17 @@ podTemplate(
   ]
 )
 {
-  node(label) {
-    environment {
-      ORG="test"
-      DOCKER_ID="carts"
-      VERSION="0.1.0-${env.BUILD_ID}"
-    }
+  env.ORG = "test"
+  env.DOCKER_ID = "carts"
+  env.VERSION = "0.1.0-${env.BUILD_ID}"
 
+  node(label) {
     stage('build') {
       checkout scm
       container('maven') {
         sh 'mvn -B clean package'
       }
     }
-    
     stage('docker') {
       container('docker') {
         echo "ORG=${env.ORG}"
