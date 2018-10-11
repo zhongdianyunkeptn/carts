@@ -25,7 +25,7 @@ podTemplate(
   environment {
     ORG="test"
     DOCKER_ID="carts"
-    VERSION="0.1.0-${env.BUILD_NUMBER}"
+    VERSION="0.1.0-${env.BUILD_ID}"
   }
 
   node(label) {
@@ -37,6 +37,10 @@ podTemplate(
     }
     stage('docker') {
       container('docker') {
+        echo "ORG=${env.ORG}"
+        echo "DOCKER_ID=${env.DOCKER_ID}"
+        echo "BUILD_ID=${env.BUILD_ID}"
+        echo "JENKINS_URL=${env.JENKINS_URL}"
         sh "docker build -t ${env.ORG}/${env.DOCKER_ID} ."
       }
     }
