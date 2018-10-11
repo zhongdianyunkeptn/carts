@@ -39,7 +39,7 @@ podTemplate(
         echo "DOCKER_ID=${env.DOCKER_ID}"
         echo "BUILD_ID=${env.BUILD_ID}"
         echo "JENKINS_URL=${env.JENKINS_URL}"
-        sh "docker build -t ${env.ORG}/${env.DOCKER_ID} ."
+        sh "docker build -t docker-registry:5000/library/${env.ORG}/${env.DOCKER_ID}:${env.BUILD_NUMBER} ."
         sh "docker push docker-registry:5000/library/${env.ORG}/${env.DOCKER_ID}:${env.BUILD_NUMBER}"
       }
     }
