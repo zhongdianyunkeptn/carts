@@ -38,7 +38,6 @@ podTemplate(
     }
     stage('docker') {
       container('docker') {
-        sh "cat /etc/resolv.conf"
         sh "docker build -t 10.31.240.247:5000/library/${env.ORG}/${env.DOCKER_ID}:${env.VERSION} ."
         sh "docker push 10.31.240.247:5000/library/${env.ORG}/${env.DOCKER_ID}:${env.VERSION}"
       }
