@@ -8,12 +8,13 @@
  */
 
 def label = "maven-${UUID.randomUUID().toString()}"
+def properties = readProperties file: 'version'
 
 podTemplate(
   label: label, 
   containers: [
-    containerTemplate(name: 'maven', image: 'maven:3.3.9-jdk-8-alpine', ttyEnabled: true, command: 'cat'),
     containerTemplate(name: 'jnlp', image: 'jenkins/jnlp-slave:3.10-1-alpine'),
+    containerTemplate(name: 'maven', image: 'maven:3.3.9-jdk-8-alpine', ttyEnabled: true, command: 'cat'),
     containerTemplate(name: 'docker', image: 'docker:stable', ttyEnabled: true, command: 'cat'),
     containerTemplate(name: 'kubectl', image: 'lachlanevenson/k8s-kubectl:v1.12.1', command: 'cat', ttyEnabled: true)
   ], 
@@ -25,7 +26,7 @@ podTemplate(
 {
   env.ORG = "test"
   env.DOCKER_ID = "carts"
-  env.VERSION = "0.1.0-${env.BUILD_ID}"
+  env.VERSION = properties['version'] + "-${env.BUILD_ID}"
 
   node(label) {
     stage('build') {
