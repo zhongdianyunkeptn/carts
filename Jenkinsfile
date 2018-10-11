@@ -8,7 +8,7 @@
  */
 
 def label = "maven-${UUID.randomUUID().toString()}"
-def properties = readProperties file: 'version'
+def version = readFile('version')
 
 podTemplate(
   label: label, 
@@ -26,7 +26,7 @@ podTemplate(
 {
   env.ORG = "test"
   env.DOCKER_ID = "carts"
-  env.VERSION = properties['version'] + "-${env.BUILD_ID}"
+  env.VERSION = version + "-${env.BUILD_ID}"
 
   node(label) {
     stage('build') {
