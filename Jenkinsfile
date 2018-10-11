@@ -39,8 +39,10 @@ podTemplate(
         echo "DOCKER_ID=${env.DOCKER_ID}"
         echo "BUILD_ID=${env.BUILD_ID}"
         echo "JENKINS_URL=${env.JENKINS_URL}"
-        sh "docker build -t docker-registry.cicd.svc.cluster.local:5000/library/${env.ORG}/${env.DOCKER_ID}:${env.BUILD_NUMBER} ."
-        sh "docker push docker-registry.cicd.svc.cluster.local:5000/library/${env.ORG}/${env.DOCKER_ID}:${env.BUILD_NUMBER}"
+        sh "cat /etc/resolv.conf"
+        sh "ping -c1 10.31.240.247"
+        sh "docker build -t 10.31.240.247:5000/library/${env.ORG}/${env.DOCKER_ID}:${env.BUILD_NUMBER} ."
+        sh "docker push 10.31.240.247:5000/library/${env.ORG}/${env.DOCKER_ID}:${env.BUILD_NUMBER}"
       }
     }
   }
