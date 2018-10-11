@@ -14,7 +14,7 @@ podTemplate(
   containers: [
     containerTemplate(name: 'maven', image: 'maven:3.3.9-jdk-8-alpine', ttyEnabled: true, command: 'cat'),
     containerTemplate(name: 'jnlp', image: 'jenkins/jnlp-slave:3.10-1-alpine'),
-    containerTemplate(name: 'docker', image: 'docker:stable', )
+    containerTemplate(name: 'docker', image: 'docker:stable', ttyEnabled: true, command: 'cat')
   ], 
   volumes: [
     persistentVolumeClaim(mountPath: '/root/.m2/repository', claimName: 'maven-repo', readOnly: false),
