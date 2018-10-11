@@ -14,7 +14,8 @@ podTemplate(
   containers: [
     containerTemplate(name: 'maven', image: 'maven:3.3.9-jdk-8-alpine', ttyEnabled: true, command: 'cat'),
     containerTemplate(name: 'jnlp', image: 'jenkins/jnlp-slave:3.10-1-alpine'),
-    containerTemplate(name: 'docker', image: 'docker:stable', ttyEnabled: true, command: 'cat')
+    containerTemplate(name: 'docker', image: 'docker:stable', ttyEnabled: true, command: 'cat'),
+    containerTemplate(name: 'kubectl', image: 'lachlanevenson/k8s-kubectl:v1.12.1', command: 'cat', ttyEnabled: true)
   ], 
   volumes: [
     persistentVolumeClaim(mountPath: '/root/.m2/repository', claimName: 'maven-repo', readOnly: false),
@@ -35,13 +36,9 @@ podTemplate(
     }
     stage('docker') {
       container('docker') {
-        echo "ORG=${env.ORG}"
-        echo "DOCKER_ID=${env.DOCKER_ID}"
-        echo "BUILD_ID=${env.BUILD_ID}"
-        echo "JENKINS_URL=${env.JENKINS_URL}"
         sh "cat /etc/resolv.conf"
-        sh "docker build -t docker-registry:5000/library/${env.ORG}/${env.DOCKER_ID}:${env.BUILD_NUMBER} ."
-        sh "docker push docker-registry:5000/library/${env.ORG}/${env.DOCKER_ID}:${env.BUILD_NUMBER}"
+        sh "docker build -t 10.31.240.247:5000/library/${env.ORG}/${env.DOCKER_ID}:${env.BUILD_NUMBER} ."
+        sh "docker push 10.31.240.247:5000/library/${env.ORG}/${env.DOCKER_ID}:${env.BUILD_NUMBER}"
       }
     }
   }
