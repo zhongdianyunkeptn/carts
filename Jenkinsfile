@@ -13,10 +13,12 @@ podTemplate(
   label: label, 
   containers: [
     containerTemplate(name: 'maven', image: 'maven:3.3.9-jdk-8-alpine', ttyEnabled: true, command: 'cat'),
-    containerTemplate(name: 'jnlp', image: 'jenkins/jnlp-slave:3.10-1-alpine')
+    containerTemplate(name: 'jnlp', image: 'jenkins/jnlp-slave:3.10-1-alpine'),
+    containerTemplate(name: 'docker', image: 'docker:stable', )
   ], 
   volumes: [
-    persistentVolumeClaim(mountPath: '/root/.m2/repository', claimName: 'maven-repo', readOnly: false)
+    persistentVolumeClaim(mountPath: '/root/.m2/repository', claimName: 'maven-repo', readOnly: false),
+    hostPathVolume(mountPath: '/var/run/docker.sock', hostPath: '/var/run/docker.sock')
   ]
 )
 {
@@ -34,7 +36,9 @@ podTemplate(
       }
     }
     stage('docker') {
-      sh "docker build -t ${env.ORG}/${env.DOCKER_ID} ."
+      container('docker') {
+        sh "docker build -t ${env.ORG}/${env.DOCKER_ID} ."
+      }
     }
   }
 }
