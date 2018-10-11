@@ -9,22 +9,38 @@
 
 def label = "maven-${UUID.randomUUID().toString()}"
 
-podTemplate(label: label, containers: [
-  containerTemplate(name: 'maven', image: 'maven:3.3.9-jdk-8-alpine', ttyEnabled: true, command: 'cat'),
-  containerTemplate(name: 'jnlp', image: 'jenkins/jnlp-slave:3.10-1-alpine')
-  ], volumes: [
-  persistentVolumeClaim(mountPath: '/root/.m2/repository', claimName: 'maven-repo', readOnly: false)
-  ]) {
+podTemplate(
+  label: label, 
+  containers: [
+    containerTemplate(name: 'maven', image: 'maven:3.3.9-jdk-8-alpine', ttyEnabled: true, command: 'cat'),
+    containerTemplate(name: 'jnlp', image: 'jenkins/jnlp-slave:3.10-1-alpine')
+  ], 
+  volumes: [
+    persistentVolumeClaim(mountPath: '/root/.m2/repository', claimName: 'maven-repo', readOnly: false)
+  ]
+)
+{
+  environment {
+    ORG="test"
+    DOCKER_ID="carts"
+    VERSION="0.1.0-${env.BUILD_NUMBER}"
+  }
 
   node(label) {
-    stage('Build a Maven project') {
+    stage('build') {
       checkout scm
       container('maven') {
-          sh 'mvn -B clean package'
+        sh 'mvn -B clean package'
+      }
+    }
+    stage('docker') {
+      steps {
+        sh "docker build -t ${env.ORG}/${env.DOCKER_ID} ."
       }
     }
   }
 }
+
 /*
 pipeline {
   agent any
