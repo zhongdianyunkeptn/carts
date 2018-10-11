@@ -8,7 +8,6 @@
  */
 
 def label = "maven-${UUID.randomUUID().toString()}"
-def version = readFile('version')
 
 podTemplate(
   label: label, 
@@ -24,13 +23,15 @@ podTemplate(
   ]
 )
 {
-  env.ORG = "test"
-  env.DOCKER_ID = "carts"
-  env.VERSION = version + "-${env.BUILD_ID}"
-
   node(label) {
     stage('build') {
       checkout scm
+
+      def version = readFile('version')    
+      env.ORG = "test"
+      env.DOCKER_ID = "carts"
+      env.VERSION = version + "-${env.BUILD_ID}"
+
       container('maven') {
         sh 'mvn -B clean package'
       }
