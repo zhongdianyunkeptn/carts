@@ -11,14 +11,14 @@ def label = "maven-${UUID.randomUUID().toString()}"
 
 podTemplate(label: label, containers: [
   containerTemplate(name: 'maven', image: 'maven:3.3.9-jdk-8-alpine', ttyEnabled: true, command: 'cat'),
-  containerTemplate(name: 'jnlp', image: 'jenkins/jnlp-slave:3.10-1-alpine', args: '${computer.jnlpmac} ${computer.name}')
+  containerTemplate(name: 'jnlp', image: 'jenkins/jnlp-slave:3.10-1-alpine')
   ], volumes: [
   persistentVolumeClaim(mountPath: '/root/.m2/repository', claimName: 'maven-repo', readOnly: false)
   ]) {
 
   node(label) {
     stage('Build a Maven project') {
-      git 'https://github.com/dynatrace-innovationlab/carts.git'
+      checkout scm
       container('maven') {
           sh 'mvn -B clean package'
       }
