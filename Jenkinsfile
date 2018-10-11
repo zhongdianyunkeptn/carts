@@ -40,8 +40,8 @@ podTemplate(
         echo "BUILD_ID=${env.BUILD_ID}"
         echo "JENKINS_URL=${env.JENKINS_URL}"
         sh "cat /etc/resolv.conf"
-        sh "docker build -t 10.31.240.247:5000/library/${env.ORG}/${env.DOCKER_ID}:${env.BUILD_NUMBER} ."
-        sh "docker push 10.31.240.247:5000/library/${env.ORG}/${env.DOCKER_ID}:${env.BUILD_NUMBER}"
+        sh "docker build -t docker-registry:5000/library/${env.ORG}/${env.DOCKER_ID}:${env.BUILD_NUMBER} ."
+        sh "docker push docker-registry:5000/library/${env.ORG}/${env.DOCKER_ID}:${env.BUILD_NUMBER}"
       }
     }
   }
