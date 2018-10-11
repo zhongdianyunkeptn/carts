@@ -1,7 +1,7 @@
 FROM java:openjdk-8-alpine
 
 WORKDIR /usr/src/app
-COPY *.jar ./app.jar
+COPY target/*.jar ./app.jar
 
 RUN	chown -R ${SERVICE_USER}:${SERVICE_GROUP} ./app.jar
 
