@@ -34,7 +34,7 @@ podTemplate(
       }
     }
     stage('docker') {
-      sh 'docker build -t ${env.ORG}/${env.DOCKER_ID} .'
+      sh "docker build -t ${env.ORG}/${env.DOCKER_ID} ."
     }
   }
 }
