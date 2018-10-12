@@ -22,7 +22,8 @@ podTemplate(
       env.DOCKER_ID = "carts"
       env.VERSION = version + "-${env.BUILD_ID}"
       env.TAG = "10.31.240.247:5000/library/${env.ORG}/${env.DOCKER_ID}"
-      env.TAG_ALPHA = TAG + ":unstable"
+      env.TAG_UNSTABLE = TAG + ":unstable"
+      env.TAG_STABLE = TAG + ":stable"
 
       container('maven') {
         sh 'mvn -B clean package'
@@ -30,17 +31,25 @@ podTemplate(
     }
     stage('docker build') {
       container('docker') {
-        sh "docker build -t ${env.TAG_ALPHA} ."
+        sh "docker build -t ${env.TAG_UNSTABLE} ."
       }
     }
     stage('docker push'){
       container('docker') {
-        sh "docker push ${env.TAG_ALPHA}"
+        sh "docker push ${env.TAG_UNSTABLE}"
       }
     }
-    stage('deploy to staging') {
+    stage('deploy to dev') {
       container('kubectl') {
-        sh "kubectl -n staging create -f manifest/carts.yml"
+        sh "kubectl -n staging apply -f manifest/carts.yml"
+      }
+    }
+    stage('run tests in dev') {
+      echo "running tests"
+    }
+    stage('mark for staging') {
+      container('docker'){
+        sh "docker tag ${env.TAG_UNSTABLE} ${env.TAG_STABLE}"
       }
     }
   }
