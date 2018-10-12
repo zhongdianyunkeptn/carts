@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: carts
-        image: 10.31.240.247:5000/library/test/carts:unstable
+        image: 10.31.240.247:5000/library/sockshop/carts:unstable
         env:
          - name: JAVA_OPTS
            value: -Xms128m -Xmx512m -XX:PermSize=128m -XX:MaxPermSize=128m -XX:+UseG1GC -Djava.security.egd=file:/dev/urandom
