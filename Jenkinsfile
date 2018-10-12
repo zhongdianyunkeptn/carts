@@ -17,7 +17,7 @@ podTemplate(
     stage('maven build') {
       checkout scm
 
-      def version = readFile('version')'   
+      def version = readFile('version') 
       env.ORG = "sockshop"
       env.DOCKER_ID = "carts"
       env.VERSION = version + "-${env.BUILD_ID}"
