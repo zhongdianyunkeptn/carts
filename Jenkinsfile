@@ -21,7 +21,7 @@ podTemplate(
       env.ORG = "sockshop"
       env.DOCKER_ID = "carts"
       env.VERSION = version + "-${env.BUILD_ID}"
-      env.TAG = "10.31.240.247:5000/library/${env.ORG}/${env.DOCKER_ID}"
+      env.TAG = "docker-registry:5000/library/${env.ORG}/${env.DOCKER_ID}"
       env.TAG_UNSTABLE = TAG + ":unstable"
       env.TAG_STABLE = TAG + ":stable"
 
