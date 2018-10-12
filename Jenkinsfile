@@ -30,8 +30,7 @@ podTemplate(
     }
     stage('docker build') {
       container('docker') {
-        sh "docker build -t ${env.TAG}:${env.VERSION} ."
-        sh "docker tag ${env.TAG}:${env.VERSION} ${env.TAG_ALPHA}"
+        sh "docker build -t ${env.TAG_ALPHA} ."
       }
     }
     stage('docker push'){
