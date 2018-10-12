@@ -7,7 +7,7 @@ pipeline {
     DOCKER_ID = "carts"
     VERSION_FROM_FILE = readFile 'version'
     VERSION = "${env.VERSION_FROM_FILE}-${env.BUILD_ID}"
-    TAG = "10.31.240.247:5000/library/${env.ORG}/${env.DOCKER_ID}"
+    TAG = "docker-registry:5000/library/${env.ORG}/${env.DOCKER_ID}"
     TAG_UNSTABLE = "${env.TAG}" + ":unstable"
     TAG_STABLE = "${env.TAG}" + ":stable"
   }
