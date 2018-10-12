@@ -36,6 +36,7 @@ podTemplate(
     }
     stage('docker push'){
       container('docker') {
+        sh "nslookup docker-registry"
         sh "docker push ${env.TAG_UNSTABLE}"
       }
     }
