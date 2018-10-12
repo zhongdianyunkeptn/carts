@@ -14,22 +14,34 @@ podTemplate(
 )
 {
   node(label) {
-    stage('build') {
+    stage('maven build') {
       checkout scm
 
       def version = readFile('version')'   
       env.ORG = "sockshop"
       env.DOCKER_ID = "carts"
       env.VERSION = version + "-${env.BUILD_ID}"
+      env.TAG = "10.31.240.247:5000/library/${env.ORG}/${env.DOCKER_ID}"
+      env.TAG_ALPHA = TAG + ":unstable"
 
       container('maven') {
         sh 'mvn -B clean package'
       }
     }
-    stage('docker build and push') {
+    stage('docker build') {
       container('docker') {
-        sh "docker build -t 10.31.240.247:5000/library/${env.ORG}/${env.DOCKER_ID}:${env.VERSION} ."
-        sh "docker push 10.31.240.247:5000/library/${env.ORG}/${env.DOCKER_ID}:${env.VERSION}"
+        sh "docker build -t ${env.TAG}:${env.VERSION} ."
+        sh "docker tag ${env.TAG}:${env.VERSION} ${env.TAG_ALPHA}"
+      }
+    }
+    stage('docker push'){
+      container('docker') {
+        sh "docker push ${env.TAG_ALPHA}"
+      }
+    }
+    stage('deploy to staging') {
+      container('kubectl') {
+        sh "kubectl -n staging create -f manifest/carts.yml"
       }
     }
   }
