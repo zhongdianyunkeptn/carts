@@ -7,10 +7,10 @@ pipeline {
   environment {
     ORG = "sockshop"
     DOCKER_ID = "carts"
-    VERSION = version + "-${env.BUILD_ID}"
+    VERSION = currentVersion + "-${env.BUILD_ID}"
     TAG = "10.31.240.247:5000/library/${env.ORG}/${env.DOCKER_ID}"
-    TAG_UNSTABLE = TAG + ":unstable"
-    TAG_STABLE = TAG + ":stable"
+    TAG_UNSTABLE = ${env.TAG} + ":unstable"
+    TAG_STABLE = ${env.TAG} + ":stable"
   }
   stages {
     stage('maven build') {
