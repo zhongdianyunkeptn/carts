@@ -9,6 +9,7 @@ groups:
   - execute-carts-load-tests
   - validate-carts-load-test
   - promote-new-version-carts
+  - upload-carts-git-release
 
 - name: init-dynatrace
   jobs: 
@@ -26,6 +27,15 @@ resource_types:
 
 resources:
 
+#GitHub Release Repository
+- name: carts-release
+  type: github-release
+  source:
+    owner: acm-workshop-concourse
+    repository: carts
+    access_token: ((github-access-token))
+
+# GitHub Repositories
 - name: git-pipeline
   type: git
   source:
@@ -62,13 +72,6 @@ resources:
 - name: version
   type: semver
   source:
-#    driver: s3
-#    initial_version: 0.0.1
-#    region_name: eu-west-1
-#    bucket: ((s3-bucket))
-#    access_key_id: ((s3-access-key-id))
-#    secret_access_key: ((s3-secret-access-key))
-#    key: carts/version
     driver: git
     uri: https://github.com/((workshop-repository))/carts.git
     branch: master
@@ -138,7 +141,7 @@ jobs:
 - name: build-carts
   plan:
   - get: git-carts
-    trigger: false
+    trigger: true
   - get: version
     params: { pre: build }
   - task: mvn-build
@@ -217,7 +220,7 @@ jobs:
         - deploy-carts-to-stage
     - get: git-jmeter-as-container
     - get: git-pipeline
-  - task: run-load-tests
+  - task: run-health-check
     file: git-pipeline/deploy/cloud-foundry/ci/tasks/health-test.yml
     params:
       APP_REPO: git-jmeter-as-container
@@ -343,9 +346,7 @@ jobs:
   - get: git-carts
     trigger: true
     passed:
-      - validate-carts-load-test
-  - get: version
-    params: { bump: patch }
+      - execute-carts-load-tests
   - get: git-pipeline
     trigger: false      
   - task: get-current-app-color
@@ -367,5 +368,28 @@ jobs:
       PCF_PWD: ((pcf-prod-deploy-password))
       PCF_SPACE: ((pcf-prod-space))
       PCF_APP_DOMAIN: ((pcf-prod-app-domain))
+
+- name: upload-carts-git-release
+  public: true
+  plan:
+  - aggregate:
+    - get: git-carts
+      trigger: true
+      passed: 
+        - promote-new-version-carts
+    - get: carts-release-bucket
+    - get: git-pipeline
+    - get: version
+      params: { pre: build }
+  - task: create-carts-release-info
+    file: git-pipeline/deploy/cloud-foundry/ci/tasks/prepare-release.yml
+    params:
+      APP_NAME: carts
+  - put: carts-release
+    params:
+      name: prepared-release/name
+      tag: prepared-release/tag
+      globs:
+      - carts-release-bucket/carts-*.jar
 #  - put: version
 #    params: { file: version/number }
