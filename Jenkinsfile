@@ -3,13 +3,12 @@ pipeline {
     label 'maven'
   }
   environment {
-    ORG = "sockshop"
-    DOCKER_ID = "carts"
-    VERSION_FROM_FILE = readFile 'version'
-    VERSION = "${env.VERSION_FROM_FILE}-${env.BUILD_ID}"
-    TAG = "10.31.240.247:5000/library/${env.ORG}/${env.DOCKER_ID}"
-    TAG_UNSTABLE = "${env.TAG}" + ":unstable"
-    TAG_STABLE = "${env.TAG}" + ":stable"
+    ARTEFACT_ID = "sockshop/carts"
+    VERSION = (readFile 'version') + "-${env.BUILD_ID}"
+    /*VERSION = "${env.VERSION_FROM_FILE}-${env.BUILD_ID}"*/
+    TAG = "10.31.240.247:5000/${env.ARTEFACT_ID}"
+    TAG_DEV = "${env.TAG}" + ":dev"
+    TAG_STAGING = "${env.TAG}" + ":staging"
   }
   stages {
     stage('maven build') {
@@ -23,14 +22,14 @@ pipeline {
     stage('docker build') {
       steps {
         container('docker') {
-          sh "docker build -t ${env.TAG_UNSTABLE} ."
+          sh "docker build -t ${env.TAG_DEV} ."
         }
       }
     }
     stage('docker push'){
       steps {
         container('docker') {
-          sh "docker push ${env.TAG_UNSTABLE}"
+          sh "docker push ${env.TAG_DEV}"
         }
       }
     }
@@ -49,8 +48,14 @@ pipeline {
     stage('mark for staging') {
       steps {
         container('docker'){
-          sh "docker tag ${env.TAG_UNSTABLE} ${env.TAG_STABLE}"
+          sh "docker tag ${env.TAG_DEV} ${env.TAG_STAGING}"
         }
+      }
+    }
+    stage('deploy to staging') {
+      steps {
+        echo "update sockshop deployment yaml for staging -> github webhook triggers deployment to staging"
+        echo "apply sockshop deployment yaml to staging environment"
       }
     }
   }
