@@ -63,7 +63,6 @@ pipeline {
     }
     stage('Run functional check in dev') {
       steps {
-        steps {
         build job: "${env.ORG}/jmeter-tests/master",
           parameters: [
             string(name: 'SCRIPT_NAME', value: "${env.APP_NAME}_load.jmx"),
@@ -76,7 +75,6 @@ pipeline {
             string(name: 'FUNC_VALIDATION', value: 'yes'),
             string(name: 'AVG_RT_VALIDATION', value: '0')
           ]
-      }
       }
     }
     stage('Mark artifact for staging namespace') {
