@@ -84,7 +84,7 @@ pipeline {
         }
       }
     }
-    stage('deploy to staging') {
+    stage('Deploy to staging') {
       steps {
         echo "update sockshop deployment yaml for staging -> github webhook triggers deployment to staging"
         echo "apply sockshop deployment yaml to staging environment"
