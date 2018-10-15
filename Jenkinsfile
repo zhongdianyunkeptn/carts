@@ -30,9 +30,7 @@ pipeline {
     }
     stage('Docker push to registry tagged :dev'){
       steps {
-        container('docker') {
-          sh "docker push ${env.TAG_DEV}"
-        }
+        sh "docker push ${env.TAG_DEV}"
       }
     }
     stage('Deploy to dev namespace') {
