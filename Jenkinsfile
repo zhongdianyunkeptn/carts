@@ -63,7 +63,7 @@ pipeline {
     }
     stage('Run functional check in dev') {
       steps {
-        build job: "${env.ORG}/jmeter-tests/master",
+        build job: "jmeter-tests",
           parameters: [
             string(name: 'SCRIPT_NAME', value: "${env.APP_NAME}_load.jmx"),
             string(name: 'SERVER_URL', value: "${env.APP_NAME}.dev"),
