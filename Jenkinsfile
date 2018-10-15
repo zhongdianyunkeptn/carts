@@ -4,7 +4,7 @@ pipeline {
   }
   environment {
     ARTEFACT_ID = "sockshop/carts"
-    VERSION = (readFile 'version') + "-${env.BUILD_ID}"
+    VERSION = readFile('version') + "-${env.BUILD_ID}"
     /*VERSION = "${env.VERSION_FROM_FILE}-${env.BUILD_ID}"*/
     TAG = "10.31.240.247:5000/${env.ARTEFACT_ID}"
     TAG_DEV = "${env.TAG}" + ":dev"
