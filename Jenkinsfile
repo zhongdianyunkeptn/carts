@@ -3,7 +3,8 @@ pipeline {
     label 'maven'
   }
   environment {
-    ARTEFACT_ID = "sockshop/carts"
+    APP_NAME = "carts"
+    ARTEFACT_ID = "sockshop/" + "${env.APP_NAME}"
     FROM_FILE = readFile 'version'
     VERSION = "${env.FROM_FILE}" + "-${env.BUILD_ID}"
     /*VERSION = "${env.VERSION_FROM_FILE}-${env.BUILD_ID}"*/
@@ -12,7 +13,7 @@ pipeline {
     TAG_STAGING = "${env.TAG}" + ":staging"
   }
   stages {
-    stage('maven build') {
+    stage('Maven build') {
       steps {
         checkout scm
         container('maven') {
@@ -20,35 +21,35 @@ pipeline {
         }
       }
     }
-    stage('docker build') {
+    stage('Docker build') {
       steps {
         container('docker') {
           sh "docker build -t ${env.TAG_DEV} ."
         }
       }
     }
-    stage('docker push'){
+    stage('Docker push to registry tagged :dev'){
       steps {
         container('docker') {
           sh "docker push ${env.TAG_DEV}"
         }
       }
     }
-    stage('deploy to dev') {
+    stage('Deploy to dev namespace') {
       steps {
         container('kubectl') {
           sh "kubectl -n dev apply -f manifest/carts.yml"
         }
       }
     }
-    stage('run tests in dev') {
+    stage('Run health check in dev') {
       steps {
         sleep 30
 
         build job: "jmeter-tests",
           parameters: [
             string(name: 'SCRIPT_NAME', value: 'basiccheck.jmx'),
-            string(name: 'SERVER_URL', value: "carts.dev"),
+            string(name: 'SERVER_URL', value: "${env.APP_NAME}.dev"),
             string(name: 'SERVER_PORT', value: '80'),
             string(name: 'CHECK_PATH', value: '/health'),
             string(name: 'VUCount', value: '1'),
@@ -60,7 +61,25 @@ pipeline {
           ]
       }
     }
-    stage('mark for staging') {
+    stage('Run functional check in dev') {
+      steps {
+        steps {
+        build job: "${env.ORG}/jmeter-tests/master",
+          parameters: [
+            string(name: 'SCRIPT_NAME', value: "${env.APP_NAME}_load.jmx"),
+            string(name: 'SERVER_URL', value: "${env.APP_NAME}.dev"),
+            string(name: 'SERVER_PORT', value: '80'),
+            string(name: 'CHECK_PATH', value: '/health'),
+            string(name: 'VUCount', value: '1'),
+            string(name: 'LoopCount', value: '1'),
+            string(name: 'DT_LTN', value: "FuncCheck_${BUILD_NUMBER}"),
+            string(name: 'FUNC_VALIDATION', value: 'yes'),
+            string(name: 'AVG_RT_VALIDATION', value: '0')
+          ]
+      }
+      }
+    }
+    stage('Mark artifact for staging namespace') {
       steps {
         container('docker'){
           sh "docker tag ${env.TAG_DEV} ${env.TAG_STAGING}"
