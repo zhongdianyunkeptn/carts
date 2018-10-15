@@ -37,7 +37,6 @@ pipeline {
     stage('deploy to dev') {
       steps {
         container('kubectl') {
-          scm 
           sh "kubectl -n dev apply -f manifest/carts.yml"
         }
       }
