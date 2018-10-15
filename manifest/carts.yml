@@ -3,7 +3,7 @@ apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
   name: carts
-  namespace: staging
+  namespace: dev
 spec:
   replicas: 1
   template:
@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: carts
-        image: 10.31.240.247:5000/library/sockshop/carts:unstable
+        image: 10.31.240.247:5000/library/sockshop/carts:dev
         env:
          - name: JAVA_OPTS
            value: -Xms128m -Xmx512m -XX:PermSize=128m -XX:MaxPermSize=128m -XX:+UseG1GC -Djava.security.egd=file:/dev/urandom
@@ -66,7 +66,7 @@ metadata:
   name: carts
   labels:
     app: carts
-  namespace: staging
+  namespace: dev
 spec:
   ports:
   - name: http
