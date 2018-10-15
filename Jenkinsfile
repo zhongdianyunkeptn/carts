@@ -45,7 +45,7 @@ pipeline {
       steps {
         sleep 30
 
-        build job: "jmeter-tests/master",
+        build job: "jmeter-tests",
           parameters: [
             string(name: 'SCRIPT_NAME', value: 'basiccheck.jmx'),
             string(name: 'SERVER_URL', value: "carts.dev"),
