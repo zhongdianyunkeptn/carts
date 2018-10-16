@@ -22,10 +22,7 @@ pipeline {
     stage('Docker build') {
       steps {
         container('docker') {
-          echo "artefact_id=${env.ARTEFACT_ID}"
-          echo "tag=${env.TAG}"
-          echo "tag_dev=${env.TAG_DEV}"
-          echo "tag_staging=${env.TAG_STAGING}"
+          echo "branch_name=${env.BRANCH_NAME}"
 
           sh "docker build -t ${env.TAG_DEV} ."
         }
@@ -81,6 +78,11 @@ pipeline {
       }
     }
     stage('Mark artifact for staging namespace') {
+      when {
+        expression {
+          return env.BRANCH_NAME ==~ 'release/.*'
+        }
+      }
       steps {
         container('docker'){
           sh "docker tag ${env.TAG_DEV} ${env.TAG_STAGING}"
