@@ -20,6 +20,11 @@ pipeline {
       }
     }
     stage('Docker build') {
+      when {
+        expression {
+          return env.BRANCH_NAME ==~ 'release/.*' || env.BRANCH_NAME ==~'master'
+        }
+      }
       steps {
         container('docker') {
           echo "branch_name=${env.BRANCH_NAME}"
@@ -29,6 +34,11 @@ pipeline {
       }
     }
     stage('Docker push to registry'){
+      when {
+        expression {
+          return env.BRANCH_NAME ==~ 'release/.*' || env.BRANCH_NAME ==~'master'
+        }
+      }
       steps {
         container('docker') {
           sh "docker push ${env.TAG_DEV}"
@@ -36,6 +46,11 @@ pipeline {
       }
     }
     stage('Deploy to dev namespace') {
+      when {
+        expression {
+          return env.BRANCH_NAME ==~ 'release/.*' || env.BRANCH_NAME ==~'master'
+        }
+      }
       steps {
         container('kubectl') {
           sh "kubectl -n dev apply -f manifest/carts.yml"
@@ -43,6 +58,11 @@ pipeline {
       }
     }
     stage('Run health check in dev') {
+      when {
+        expression {
+          return env.BRANCH_NAME ==~ 'release/.*' || env.BRANCH_NAME ==~'master'
+        }
+      }
       steps {
         sleep 30
 
@@ -62,6 +82,11 @@ pipeline {
       }
     }
     stage('Run functional check in dev') {
+      when {
+        expression {
+          return env.BRANCH_NAME ==~ 'release/.*' || env.BRANCH_NAME ==~'master'
+        }
+      }
       steps {
         build job: "jmeter-tests",
           parameters: [
@@ -90,6 +115,11 @@ pipeline {
       }
     }
     stage('Deploy to staging') {
+      when {
+        expression {
+          return env.BRANCH_NAME ==~ 'release/.*'
+        }
+      }
       agent {
         label 'git'
       }
