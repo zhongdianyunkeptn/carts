@@ -5,12 +5,10 @@ pipeline {
   environment {
     APP_NAME = "carts"
     ARTEFACT_ID = "sockshop/" + "${env.APP_NAME}"
-    FROM_FILE = readFile 'version'
-    VERSION = "${env.FROM_FILE}" + "-${env.BUILD_ID}"
-    /*VERSION = "${env.VERSION_FROM_FILE}-${env.BUILD_ID}"*/
+    VERSION = readFile 'version'
     TAG = "10.31.240.247:5000/library/${env.ARTEFACT_ID}"
-    TAG_DEV = "${env.TAG}" + ":dev"
-    TAG_STAGING = "${env.TAG}" + ":staging"
+    TAG_DEV = "${env.TAG}-${env.VERSION}-${env.BUILD_ID}"
+    TAG_STAGING = "${env.TAG}-${env.VERSION}"
   }
   stages {
     stage('Maven build') {
@@ -28,7 +26,7 @@ pipeline {
         }
       }
     }
-    stage('Docker push to registry tagged :dev'){
+    stage('Docker push to registry'){
       steps {
         container('docker') {
           sh "docker push ${env.TAG_DEV}"
@@ -85,11 +83,12 @@ pipeline {
       }
     }
     stage('Deploy to staging') {
+      agent {
+        label 'git'
+      }
       steps {
         echo "update sockshop deployment yaml for staging -> github webhook triggers deployment to staging"
         echo "apply sockshop deployment yaml to staging environment"
-        echo "istio blue/green deployment that rolls back when failure rate increases?"
-        echo "at least in production it should be like that!"
       }
     }
   }
