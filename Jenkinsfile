@@ -22,6 +22,11 @@ pipeline {
     stage('Docker build') {
       steps {
         container('docker') {
+          echo "artefact_id=${env.ARTEFACT_ID}"
+          echo "tag=${env.TAG}"
+          echo "tag_dev=${env.TAG_DEV}"
+          echo "tag_staging=${env.TAG_STAGING}"
+
           sh "docker build -t ${env.TAG_DEV} ."
         }
       }
