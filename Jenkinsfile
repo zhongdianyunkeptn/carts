@@ -111,6 +111,7 @@ pipeline {
       steps {
         container('docker'){
           sh "docker tag ${env.TAG_DEV} ${env.TAG_STAGING}"
+          sh "docker push ${env.TAG_STAGING}"
         }
       }
     }
@@ -124,8 +125,9 @@ pipeline {
         label 'git'
       }
       steps {
-        echo "update sockshop deployment yaml for staging -> github webhook triggers deployment to staging"
-        echo "apply sockshop deployment yaml to staging environment"
+        sh "git clone https://github.com/dynatrace-sockshop/k8s-deploy-staging.git"
+        sh "sed -i 's/image: .*/image: ${env.TAG_STAGING}/' k8s-deploy-staging/carts.yml"
+        sh "cd k8s-deploy-staging && git add carts.yml && git commit -m 'release carts version ${env.VERSION}' && git push"
       }
     }
   }
