@@ -4,11 +4,10 @@ pipeline {
   }
   environment {
     APP_NAME = "carts"
-    ARTEFACT_ID = "sockshop/" + "${env.APP_NAME}"
     VERSION = readFile 'version'
+    ARTEFACT_ID = "sockshop/" + "${env.APP_NAME}"
     TAG = "10.31.240.247:5000/library/${env.ARTEFACT_ID}"
     TAG_DEV = "${env.TAG}:dev"
-//    TAG_DEV = "${env.TAG}-${env.VERSION}-${env.BUILD_NUMBER}"
     TAG_STAGING = "${env.TAG}-${env.VERSION}"
   }
   stages {
@@ -126,9 +125,13 @@ pipeline {
         label 'git'
       }
       steps {
-        sh "git clone https://github.com/dynatrace-sockshop/k8s-deploy-staging.git"
-        sh "sed -i 's/image: .*/image: ${env.TAG_STAGING}/' k8s-deploy-staging/carts.yml"
-        sh "cd k8s-deploy-staging && git add carts.yml && git commit -m 'release carts version ${env.VERSION}' && git push"
+        withCredentials([usernamePassword(credentialsId: 'git-credentials-acm', passwordVariable: 'GIT_PASSWORD', usernameVariable: 'GIT_USERNAME')]) {
+            sh "git config --global user.email ${env.GIT_USER_EMAIL}"
+            sh "git clone https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/dynatrace-sockshop/k8s-deploy-staging"
+            sh "cd k8s-deploy-staging/ && sed -i 's#image: .*#image: ${env.TAG_STAGING}#' carts.yml"
+            sh "cd k8s-deploy-staging/ && git add carts.yml && git commit -m 'Update carts version ${env.VERSION}'"
+            sh 'cd k8s-deploy-staging/ && git push https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/dynatrace-sockshop/k8s-deploy-staging'
+        }
       }
     }
   }
