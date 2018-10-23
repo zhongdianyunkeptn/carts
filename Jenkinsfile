@@ -65,7 +65,8 @@ pipeline {
         }
       }
       steps {
-        sleep 30
+        echo "waiting for the service to start..."
+        sleep 90
 
         build job: "jmeter-tests",
           parameters: [
