@@ -119,6 +119,7 @@ pipeline {
     }
     stage('Deploy to staging') {
       when {
+        beforeAgent true
         expression {
           return env.BRANCH_NAME ==~ 'release/.*'
         }
