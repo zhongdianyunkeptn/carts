@@ -54,7 +54,7 @@ pipeline {
       steps {
         container('kubectl') {
           sh "sed -i 's#image: .*#image: ${env.TAG_DEV}#' manifest/carts.yml"
-          sh 'kubectl -n dev apply -f manifest/carts.yml -e DT_TAGS="SERVICE_TYPE=FRONTEND" -e DT_CUSTOM_PROP="SERVICE_TYPE=FRONTEND"'
+          sh "kubectl -n dev apply -f manifest/carts.yml"
         }
       }
     }
