@@ -41,14 +41,14 @@ spec:
           name: tmp-volume
         livenessProbe:
           httpGet:
-            path: /health
+            path: /carts/1/items/health
             port: 8080
           initialDelaySeconds: 120
           periodSeconds: 10
           timeoutSeconds: 15
         readinessProbe:
           httpGet:
-            path: /health
+            path: /carts/1/items/health
             port: 8080
           initialDelaySeconds: 120
           periodSeconds: 10
