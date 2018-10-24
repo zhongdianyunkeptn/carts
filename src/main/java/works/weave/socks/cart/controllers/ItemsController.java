@@ -17,8 +17,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
 
-import javax.servlet.http.HttpServletResponse;
-
 import static org.slf4j.LoggerFactory.getLogger;
 
 @RestController
@@ -86,14 +84,14 @@ public class ItemsController {
             // don't do anything
         }
 
-        try  {
-            int errRate = Integer.parseInt(errorRate);
-            if (errRate >= (Math.random()*100)) {
-                throw new Exception("error!");
-            }   
-        } catch (Exception e) {
-            throw e;
-        }
+        // try  {
+        //     int errRate = Integer.parseInt(errorRate);
+        //     if (errRate >= 100) { //} (Math.random()*100)) {
+        //         throw new Exception("error!");
+        //     }   
+        // } catch (Exception e) {
+        //     throw e;
+        // }
 
         if (!foundItem.hasItem()) {
             Supplier<Item> newItem = new ItemResource(itemDAO, () -> item).create();
