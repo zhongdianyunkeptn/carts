@@ -30,7 +30,7 @@ public class UnitItemsController {
     private CartsController cartsController;
 
     @Test
-    public void whenNewItemAdd() {
+    public void whenNewItemAdd() throws Exception {
         Item item = new Item("id", "itemId", 1, 0F);
         String customerId = "customerIdAdd";
         itemsController.addToCart(customerId, item);
@@ -39,7 +39,7 @@ public class UnitItemsController {
     }
 
     @Test
-    public void whenExistIncrementQuantity() {
+    public void whenExistIncrementQuantity() throws Exception {
         Item item = new Item("id", "itemId", 1, 0F);
         String customerId = "customerIdIncrement";
         itemsController.addToCart(customerId, item);
@@ -50,7 +50,7 @@ public class UnitItemsController {
     }
 
     @Test
-    public void shouldRemoveItemFromCart() {
+    public void shouldRemoveItemFromCart() throws Exception {
         Item item = new Item("id", "itemId", 1, 0F);
         String customerId = "customerIdRemove";
         itemsController.addToCart(customerId, item);
@@ -60,7 +60,7 @@ public class UnitItemsController {
     }
 
     @Test
-    public void shouldSetQuantity() {
+    public void shouldSetQuantity() throws Exception {
         Item item = new Item("id", "itemId", 1, 0F);
         String customerId = "customerIdQuantity";
         itemsController.addToCart(customerId, item);
