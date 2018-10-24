@@ -86,7 +86,7 @@ pipeline {
     stage('Run functional check in dev') {
       when {
         expression {
-          return env.BRANCH_NAME ==~ 'release/.*' || env.BRANCH_NAME ==~'master'
+          return env.BRANCH_NAME ==~ 'release/.*' || env.BRANCH_NAME ==~'master' // replace to: return env.BRANCH_NAME ==~ 'release/.*'
         }
       }
       steps {
@@ -107,7 +107,7 @@ pipeline {
     stage('Mark artifact for staging namespace') {
       when {
         expression {
-          return env.BRANCH_NAME ==~ 'release/.*'
+          return env.BRANCH_NAME ==~ 'release/.*' || env.BRANCH_NAME ==~'master' // replace to: return env.BRANCH_NAME ==~ 'release/.*'
         }
       }
       steps {
@@ -121,7 +121,7 @@ pipeline {
       when {
         beforeAgent true
         expression {
-          return env.BRANCH_NAME ==~ 'release/.*'
+          return env.BRANCH_NAME ==~ 'release/.*' || env.BRANCH_NAME ==~'master' // replace to: return env.BRANCH_NAME ==~ 'release/.*'
         }
       }
       steps {
