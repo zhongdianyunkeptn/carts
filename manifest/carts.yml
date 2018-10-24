@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: carts
-        image: to-be-replaced-by-jenkins
+        image: to-be-replaced-by-jenkins-hehe
         env:
         - name: JAVA_OPTS
           value: -Xms128m -Xmx512m -XX:PermSize=128m -XX:MaxPermSize=128m -XX:+UseG1GC -Djava.security.egd=file:/dev/urandom
@@ -74,3 +74,4 @@ spec:
     targetPort: 8080
   selector:
     app: carts
+  type: LoadBalancer
