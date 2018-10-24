@@ -6,7 +6,7 @@ pipeline {
     APP_NAME = "carts"
     VERSION = readFile 'version'
     ARTEFACT_ID = "sockshop/" + "${env.APP_NAME}"
-    TAG = "10.31.240.247:5000/library/${env.ARTEFACT_ID}"
+    TAG = "${env.DOCKER_REGISTRY_URL}:5000/library/${env.ARTEFACT_ID}"
     TAG_DEV = "${env.TAG}-${env.VERSION}-${env.BUILD_NUMBER}"
     TAG_STAGING = "${env.TAG}-${env.VERSION}"
   }
@@ -86,7 +86,7 @@ pipeline {
     stage('Run functional check in dev') {
       when {
         expression {
-          return env.BRANCH_NAME ==~ 'release/.*' || env.BRANCH_NAME ==~'master'
+          return env.BRANCH_NAME ==~ 'release/.*'
         }
       }
       steps {
@@ -124,17 +124,13 @@ pipeline {
           return env.BRANCH_NAME ==~ 'release/.*'
         }
       }
-      agent {
-        label 'git'
-      }
       steps {
-        withCredentials([usernamePassword(credentialsId: 'git-credentials-acm', passwordVariable: 'GIT_PASSWORD', usernameVariable: 'GIT_USERNAME')]) {
-            sh "git config --global user.email ${env.GIT_USER_EMAIL}"
-            sh "git clone https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/dynatrace-sockshop/k8s-deploy-staging"
-            sh "cd k8s-deploy-staging/ && sed -i 's#image: .*#image: ${env.TAG_STAGING}#' carts.yml"
-            sh "cd k8s-deploy-staging/ && git add carts.yml && git commit -m 'Update carts version ${env.VERSION}'"
-            sh 'cd k8s-deploy-staging/ && git push https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/dynatrace-sockshop/k8s-deploy-staging'
-        }
+        build job: "k8s-deploy-staging",
+          parameters: [
+            string(name: 'APP_NAME', value: "${env.APP_NAME}"),
+            string(name: 'TAG_STAGING', value: "${env.TAG_STAGING}"),
+            string(name: 'VERSION', value: "${env.VERSION}")
+          ]
       }
     }
   }
