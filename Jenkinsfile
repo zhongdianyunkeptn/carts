@@ -86,7 +86,7 @@ pipeline {
     stage('Run functional check in dev') {
       when {
         expression {
-          return env.BRANCH_NAME ==~ 'release/.*' || env.BRANCH_NAME ==~'master' // replace to: return env.BRANCH_NAME ==~ 'release/.*'
+          return env.BRANCH_NAME ==~ 'release/.*'
         }
       }
       steps {
@@ -107,7 +107,7 @@ pipeline {
     stage('Mark artifact for staging namespace') {
       when {
         expression {
-          return env.BRANCH_NAME ==~ 'release/.*' || env.BRANCH_NAME ==~'master' // replace to: return env.BRANCH_NAME ==~ 'release/.*'
+          return env.BRANCH_NAME ==~ 'release/.*'
         }
       }
       steps {
@@ -121,11 +121,11 @@ pipeline {
       when {
         beforeAgent true
         expression {
-          return env.BRANCH_NAME ==~ 'release/.*' || env.BRANCH_NAME ==~'master' // replace to: return env.BRANCH_NAME ==~ 'release/.*'
+          return env.BRANCH_NAME ==~ 'release/.*'
         }
       }
       steps {
-        build job: "k8-deploy-staging",
+        build job: "k8s-deploy-staging",
           parameters: [
             string(name: 'APP_NAME', value: "${env.APP_NAME}"),
             string(name: 'TAG_STAGING', value: "${env.TAG_STAGING}"),
