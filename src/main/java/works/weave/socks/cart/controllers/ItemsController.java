@@ -54,8 +54,8 @@ public class ItemsController {
     }
 
     @ResponseStatus(HttpStatus.OK)
-    @RequestMapping(value = "/errorRate/{errorRate}", method = RequestMethod.GET)
-    public void setErrorRate(@PathVariable("errorRate") Optional<String> errorRate) {
+    @RequestMapping(value = "/errorRate/{errors}", method = RequestMethod.GET)
+    public void setErrorRate(@PathVariable("errors") Optional<String> errorRate) {
         String newErrorRate = "0";
 
         if (errorRate.isPresent()) {
@@ -86,7 +86,7 @@ public class ItemsController {
 
         try  {
             int errRate = Integer.parseInt(errorRate);
-            if (errRate >= 100) { //} (Math.random()*100)) {
+            if (errRate >= (Math.random()*100)) {
                 throw new Exception("error!");
             }   
         } catch (Exception e) {
