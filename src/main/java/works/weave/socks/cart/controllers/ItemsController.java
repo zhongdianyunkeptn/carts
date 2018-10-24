@@ -84,14 +84,10 @@ public class ItemsController {
             // don't do anything
         }
 
-        try  {
-            int errRate = Integer.parseInt(errorRate);
-            if (errRate >= (Math.random()*100)) {
-                throw new Exception("error!");
-            }   
-        } catch (Exception e) {
-            throw e;
-        }
+        int errRate = Integer.parseInt(errorRate);
+        if (errRate >= (Math.random()*100)) {
+            throw new Exception("error created by user-defined error rate.");
+        }   
 
         if (!foundItem.hasItem()) {
             Supplier<Item> newItem = new ItemResource(itemDAO, () -> item).create();
