@@ -54,7 +54,7 @@ public class ItemsController {
     }
 
     @ResponseStatus(HttpStatus.OK)
-    @RequestMapping(value = "/errorRate/{errors}", method = RequestMethod.GET)
+    @RequestMapping(value = "/errors/{errors}", method = RequestMethod.GET)
     public void setErrorRate(@PathVariable("errors") Optional<String> errorRate) {
         String newErrorRate = "0";
 
