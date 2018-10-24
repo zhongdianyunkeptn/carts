@@ -17,6 +17,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
 
+import javax.servlet.http.HttpServletResponse;
+
 import static org.slf4j.LoggerFactory.getLogger;
 
 @RestController
@@ -32,6 +34,8 @@ public class ItemsController {
     private CartDAO cartDAO;
     @Value("${delayInMillis}")
     private String delayInMillis;
+    @Value("${errorRate}")
+    private String errorRate;
 
     @ResponseStatus(HttpStatus.OK)
     @RequestMapping(value = "/{itemId:.*}", produces = MediaType.APPLICATION_JSON_VALUE, method = RequestMethod.GET)
@@ -52,6 +56,18 @@ public class ItemsController {
     }
 
     @ResponseStatus(HttpStatus.OK)
+    @RequestMapping(value = "/errorRate/{errorRate}", method = RequestMethod.GET)
+    public void setErrorRate(@PathVariable("errorRate") Optional<String> errorRate) {
+        String newErrorRate = "0";
+
+        if (errorRate.isPresent()) {
+            newErrorRate = errorRate.get();
+        }
+
+        this.errorRate = newErrorRate;
+    }
+
+    @ResponseStatus(HttpStatus.OK)
     @RequestMapping(produces = MediaType.APPLICATION_JSON_VALUE, method = RequestMethod.GET)
     public List<Item> getItems(@PathVariable String customerId) {
         return cartsController.get(customerId).contents();
@@ -59,7 +75,7 @@ public class ItemsController {
 
     @ResponseStatus(HttpStatus.CREATED)
     @RequestMapping(consumes = MediaType.APPLICATION_JSON_VALUE, method = RequestMethod.POST)
-    public Item addToCart(@PathVariable String customerId, @RequestBody Item item) {
+    public Item addToCart(@PathVariable String customerId, @RequestBody Item item) throws Exception{
         // If the item does not exist in the cart, create new one in the repository.
         FoundItem foundItem = new FoundItem(() -> cartsController.get(customerId).contents(), () -> item);
 
@@ -68,6 +84,15 @@ public class ItemsController {
             Thread.sleep(millis);
         } catch (Throwable e) {
             // don't do anything
+        }
+
+        try  {
+            int errRate = Integer.parseInt(errorRate);
+            if (errRate >= (Math.random()*100)) {
+                throw new Exception("error!");
+            }   
+        } catch (Exception e) {
+            throw e;
         }
 
         if (!foundItem.hasItem()) {
