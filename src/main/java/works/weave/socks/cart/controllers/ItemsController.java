@@ -32,7 +32,7 @@ public class ItemsController {
     private CartDAO cartDAO;
     @Value("${delayInMillis}")
     private String delayInMillis;
-    @Value("${errorRate}")
+    @Value("0")
     private String errorRate;
 
     @ResponseStatus(HttpStatus.OK)
