@@ -3,6 +3,7 @@ package works.weave.socks.cart.controllers;
 import static org.slf4j.LoggerFactory.getLogger;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
 
@@ -137,6 +138,21 @@ public class ItemsController {
     @ResponseBody
     String getHealth() {
         return "OK - endpoint available";
+    }
+
+    @ResponseStatus(HttpStatus.OK)
+    @RequestMapping(method = RequestMethod.GET, path = "/memoyLeak")
+    public void createMemoryLeak() {
+        class BadKey {
+            // no hashCode or equals();
+            public final String key;
+            public BadKey(String key) { this.key = key; }
+         }
+         
+         while (true) {
+            Map map = System.getProperties();
+            map.put(new BadKey("key"), "value");
+         }
     }
 
 
