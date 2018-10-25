@@ -136,8 +136,8 @@ public class ItemsController {
     @RequestMapping(method = RequestMethod.GET, path = "/health")
     public
     @ResponseBody
-    Map<String, List<HealthCheck>> getHealth() {
-        return new HealthCheckController().getHealth();
+    String getHealth() {
+        return "OK - endpoint available";
     }
 
 
