@@ -37,7 +37,7 @@ public class ItemsController {
     private CartsController cartsController;
     @Autowired
     private CartDAO cartDAO;
-    @Value("${delayInMillis}")
+    @Value("0")
     private String delayInMillis;
     @Value("0")
     private String errorRate;
