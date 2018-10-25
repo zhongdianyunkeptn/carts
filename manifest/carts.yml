@@ -5,7 +5,7 @@ metadata:
   name: carts
   namespace: dev
 spec:
-  replicas: 1
+  replicas: 3
   template:
     metadata:
       labels:
