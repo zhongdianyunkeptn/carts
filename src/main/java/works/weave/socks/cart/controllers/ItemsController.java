@@ -42,6 +42,7 @@ public class ItemsController {
     @Value("0")
     private String errorRate;
 
+
     @ResponseStatus(HttpStatus.OK)
     @RequestMapping(value = "/{itemId:.*}", produces = MediaType.APPLICATION_JSON_VALUE, method = RequestMethod.GET)
     public Item get(@PathVariable String customerId, @PathVariable String itemId) {
@@ -131,33 +132,14 @@ public class ItemsController {
         itemResource.merge(item).run();
     }
 
-
-
-    @Autowired
-    private MongoTemplate mongoTemplate;
-
     @ResponseStatus(HttpStatus.OK)
     @RequestMapping(method = RequestMethod.GET, path = "/health")
     public
     @ResponseBody
     Map<String, List<HealthCheck>> getHealth() {
-       Map<String, List<HealthCheck>> map = new HashMap<String, List<HealthCheck>>();
-       List<HealthCheck> healthChecks = new ArrayList<HealthCheck>();
-       Date dateNow = Calendar.getInstance().getTime();
-
-       HealthCheck app = new HealthCheck("carts", "OK", dateNow);
-       HealthCheck database = new HealthCheck("carts-db", "OK", dateNow);
-
-       try {
-          mongoTemplate.executeCommand("{ buildInfo: 1 }");
-       } catch (Exception e) {
-          database.setStatus("err");
-       }
-
-       healthChecks.add(app);
-       healthChecks.add(database);
-
-       map.put("health", healthChecks);
-       return map;
+        return new HealthCheckController().getHealth();
     }
+
+
+    
 }
