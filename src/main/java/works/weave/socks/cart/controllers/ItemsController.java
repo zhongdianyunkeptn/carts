@@ -1,30 +1,33 @@
 package works.weave.socks.cart.controllers;
 
-import org.slf4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.beans.factory.annotation.*;
-import works.weave.socks.cart.cart.CartDAO;
-import works.weave.socks.cart.cart.CartResource;
-import works.weave.socks.cart.entities.HealthCheck;
-import works.weave.socks.cart.entities.Item;
-import works.weave.socks.cart.item.FoundItem;
-import works.weave.socks.cart.item.ItemDAO;
-import works.weave.socks.cart.item.ItemResource;
+import static org.slf4j.LoggerFactory.getLogger;
 
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
 
-import static org.slf4j.LoggerFactory.getLogger;
+import org.slf4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
+
+import works.weave.socks.cart.cart.CartDAO;
+import works.weave.socks.cart.cart.CartResource;
+import works.weave.socks.cart.entities.Item;
+import works.weave.socks.cart.item.FoundItem;
+import works.weave.socks.cart.item.ItemDAO;
+import works.weave.socks.cart.item.ItemResource;
+
+// testcomment for rolling update
 
 @RestController
 @RequestMapping(value = "/carts/{customerId:.*}/items")
@@ -37,7 +40,7 @@ public class ItemsController {
     private CartsController cartsController;
     @Autowired
     private CartDAO cartDAO;
-    @Value("${delayInMillis}")
+    @Value("0")
     private String delayInMillis;
     @Value("0")
     private String errorRate;
@@ -80,7 +83,7 @@ public class ItemsController {
 
     @ResponseStatus(HttpStatus.CREATED)
     @RequestMapping(consumes = MediaType.APPLICATION_JSON_VALUE, method = RequestMethod.POST)
-    public Item addToCart(@PathVariable String customerId, @RequestBody Item item) throws Exception{
+    public Item addToCart(@PathVariable String customerId, @RequestBody Item item) throws Exception {
         // If the item does not exist in the cart, create new one in the repository.
         FoundItem foundItem = new FoundItem(() -> cartsController.get(customerId).contents(), () -> item);
 
@@ -92,9 +95,9 @@ public class ItemsController {
         }
 
         int errRate = Integer.parseInt(errorRate);
-        if (errRate >= (Math.random()*100)) {
+        if (errRate >= (Math.random() * 100)) {
             throw new Exception("error created by user-defined error rate.");
-        }   
+        }
 
         if (!foundItem.hasItem()) {
             Supplier<Item> newItem = new ItemResource(itemDAO, () -> item).create();
@@ -131,33 +134,34 @@ public class ItemsController {
         itemResource.merge(item).run();
     }
 
-
-
-    @Autowired
-    private MongoTemplate mongoTemplate;
-
     @ResponseStatus(HttpStatus.OK)
     @RequestMapping(method = RequestMethod.GET, path = "/health")
-    public
-    @ResponseBody
-    Map<String, List<HealthCheck>> getHealth() {
-       Map<String, List<HealthCheck>> map = new HashMap<String, List<HealthCheck>>();
-       List<HealthCheck> healthChecks = new ArrayList<HealthCheck>();
-       Date dateNow = Calendar.getInstance().getTime();
-
-       HealthCheck app = new HealthCheck("carts", "OK", dateNow);
-       HealthCheck database = new HealthCheck("carts-db", "OK", dateNow);
-
-       try {
-          mongoTemplate.executeCommand("{ buildInfo: 1 }");
-       } catch (Exception e) {
-          database.setStatus("err");
-       }
-
-       healthChecks.add(app);
-       healthChecks.add(database);
-
-       map.put("health", healthChecks);
-       return map;
+    public @ResponseBody String getHealth() {
+        return "OK - endpoint available";
     }
+
+    @ResponseStatus(HttpStatus.OK)
+    @RequestMapping(method = RequestMethod.GET, path = "/memoryLeak/{loops}")
+    public void createMemoryLeak(@PathVariable("loops") Optional<String> loopNumber) {
+        class BadKey {
+            // no hashCode or equals();
+            public final String key;
+
+            public BadKey(String key) {
+                this.key = key;
+            }
+        }
+        Map map = System.getProperties();
+
+        int counter = 0;
+        if (loopNumber.isPresent()) {
+            int loops = Integer.parseInt(loopNumber.get());
+            while (counter < loops) {
+                map.put(new BadKey("key"), new String("value"));
+                counter++;
+            }
+            return;
+        }
+    }
+
 }

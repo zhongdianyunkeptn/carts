@@ -16,6 +16,8 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
 import static org.junit.Assert.assertThat;
 
+import java.util.Optional;
+
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
 public class UnitItemsController {
@@ -68,6 +70,12 @@ public class UnitItemsController {
         Item anotherItem = new Item(item, 15);
         itemsController.updateItem(customerId, anotherItem);
         assertThat(itemDAO.findOne(item.id()).quantity(), is(equalTo(anotherItem.quantity())));
+    }
+
+    @Test
+    public void testMemoryLeak() {
+        itemsController.createMemoryLeak(Optional.of("100000"));
+        
     }
 
     @Configuration
