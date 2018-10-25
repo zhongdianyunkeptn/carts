@@ -27,8 +27,6 @@ import works.weave.socks.cart.item.FoundItem;
 import works.weave.socks.cart.item.ItemDAO;
 import works.weave.socks.cart.item.ItemResource;
 
-// testcomment for rolling update
-
 @RestController
 @RequestMapping(value = "/carts/{customerId:.*}/items")
 public class ItemsController {
