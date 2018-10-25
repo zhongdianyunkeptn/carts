@@ -81,7 +81,7 @@ public class ItemsController {
 
     @ResponseStatus(HttpStatus.CREATED)
     @RequestMapping(consumes = MediaType.APPLICATION_JSON_VALUE, method = RequestMethod.POST)
-    public Item addToCart(@PathVariable String customerId, @RequestBody Item item) throws Exception{
+    public Item addToCart(@PathVariable String customerId, @RequestBody Item item) throws Exception {
         // If the item does not exist in the cart, create new one in the repository.
         FoundItem foundItem = new FoundItem(() -> cartsController.get(customerId).contents(), () -> item);
 
@@ -93,9 +93,9 @@ public class ItemsController {
         }
 
         int errRate = Integer.parseInt(errorRate);
-        if (errRate >= (Math.random()*100)) {
+        if (errRate >= (Math.random() * 100)) {
             throw new Exception("error created by user-defined error rate.");
-        }   
+        }
 
         if (!foundItem.hasItem()) {
             Supplier<Item> newItem = new ItemResource(itemDAO, () -> item).create();
@@ -134,33 +134,32 @@ public class ItemsController {
 
     @ResponseStatus(HttpStatus.OK)
     @RequestMapping(method = RequestMethod.GET, path = "/health")
-    public
-    @ResponseBody
-    String getHealth() {
+    public @ResponseBody String getHealth() {
         return "OK - endpoint available";
     }
 
     @ResponseStatus(HttpStatus.OK)
     @RequestMapping(method = RequestMethod.GET, path = "/memoryLeak/{loops}")
-    public void createMemoryLeak(@PathVariable("loops") Optional<String> loopNumber)  {
+    public void createMemoryLeak(@PathVariable("loops") Optional<String> loopNumber) {
         class BadKey {
             // no hashCode or equals();
             public final String key;
-            public BadKey(String key) { this.key = key; }
-         }
-         Map map = System.getProperties();
 
-         int counter = 0;
-         if (loopNumber.isPresent()) {
-             int loops = Integer.parseInt(loopNumber.get());
-             while (counter < loops) {
+            public BadKey(String key) {
+                this.key = key;
+            }
+        }
+        Map map = System.getProperties();
+
+        int counter = 0;
+        if (loopNumber.isPresent()) {
+            int loops = Integer.parseInt(loopNumber.get());
+            while (counter < loops) {
                 map.put(new BadKey("key"), new String("value"));
                 counter++;
-         }
-         return;
+            }
+            return;
+        }
     }
 
-
-
-    
 }
