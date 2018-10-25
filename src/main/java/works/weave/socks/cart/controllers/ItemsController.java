@@ -2,18 +2,25 @@ package works.weave.socks.cart.controllers;
 
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.beans.factory.annotation.*;
 import works.weave.socks.cart.cart.CartDAO;
 import works.weave.socks.cart.cart.CartResource;
+import works.weave.socks.cart.entities.HealthCheck;
 import works.weave.socks.cart.entities.Item;
 import works.weave.socks.cart.item.FoundItem;
 import works.weave.socks.cart.item.ItemDAO;
 import works.weave.socks.cart.item.ItemResource;
 
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
 
@@ -32,6 +39,8 @@ public class ItemsController {
     private CartDAO cartDAO;
     @Value("${delayInMillis}")
     private String delayInMillis;
+    @Value("0")
+    private String errorRate;
 
     @ResponseStatus(HttpStatus.OK)
     @RequestMapping(value = "/{itemId:.*}", produces = MediaType.APPLICATION_JSON_VALUE, method = RequestMethod.GET)
@@ -52,6 +61,18 @@ public class ItemsController {
     }
 
     @ResponseStatus(HttpStatus.OK)
+    @RequestMapping(value = "/errors/{errors}", method = RequestMethod.GET)
+    public void setErrorRate(@PathVariable("errors") Optional<String> errorRate) {
+        String newErrorRate = "0";
+
+        if (errorRate.isPresent()) {
+            newErrorRate = errorRate.get();
+        }
+
+        this.errorRate = newErrorRate;
+    }
+
+    @ResponseStatus(HttpStatus.OK)
     @RequestMapping(produces = MediaType.APPLICATION_JSON_VALUE, method = RequestMethod.GET)
     public List<Item> getItems(@PathVariable String customerId) {
         return cartsController.get(customerId).contents();
@@ -59,7 +80,7 @@ public class ItemsController {
 
     @ResponseStatus(HttpStatus.CREATED)
     @RequestMapping(consumes = MediaType.APPLICATION_JSON_VALUE, method = RequestMethod.POST)
-    public Item addToCart(@PathVariable String customerId, @RequestBody Item item) {
+    public Item addToCart(@PathVariable String customerId, @RequestBody Item item) throws Exception{
         // If the item does not exist in the cart, create new one in the repository.
         FoundItem foundItem = new FoundItem(() -> cartsController.get(customerId).contents(), () -> item);
 
@@ -69,6 +90,11 @@ public class ItemsController {
         } catch (Throwable e) {
             // don't do anything
         }
+
+        int errRate = Integer.parseInt(errorRate);
+        if (errRate >= (Math.random()*100)) {
+            throw new Exception("error created by user-defined error rate.");
+        }   
 
         if (!foundItem.hasItem()) {
             Supplier<Item> newItem = new ItemResource(itemDAO, () -> item).create();
@@ -103,5 +129,35 @@ public class ItemsController {
         ItemResource itemResource = new ItemResource(itemDAO, () -> get(customerId, item.itemId()));
         LOG.debug("Merging item in cart for user: " + customerId + ", " + item);
         itemResource.merge(item).run();
+    }
+
+
+
+    @Autowired
+    private MongoTemplate mongoTemplate;
+
+    @ResponseStatus(HttpStatus.OK)
+    @RequestMapping(method = RequestMethod.GET, path = "/health")
+    public
+    @ResponseBody
+    Map<String, List<HealthCheck>> getHealth() {
+       Map<String, List<HealthCheck>> map = new HashMap<String, List<HealthCheck>>();
+       List<HealthCheck> healthChecks = new ArrayList<HealthCheck>();
+       Date dateNow = Calendar.getInstance().getTime();
+
+       HealthCheck app = new HealthCheck("carts", "OK", dateNow);
+       HealthCheck database = new HealthCheck("carts-db", "OK", dateNow);
+
+       try {
+          mongoTemplate.executeCommand("{ buildInfo: 1 }");
+       } catch (Exception e) {
+          database.setStatus("err");
+       }
+
+       healthChecks.add(app);
+       healthChecks.add(database);
+
+       map.put("health", healthChecks);
+       return map;
     }
 }
