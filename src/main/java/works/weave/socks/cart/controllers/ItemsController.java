@@ -141,19 +141,25 @@ public class ItemsController {
     }
 
     @ResponseStatus(HttpStatus.OK)
-    @RequestMapping(method = RequestMethod.GET, path = "/memoyLeak")
-    public void createMemoryLeak() {
+    @RequestMapping(method = RequestMethod.GET, path = "/memoryLeak/{loops}")
+    public void createMemoryLeak(@PathVariable("loops") Optional<String> loopNumber)  {
         class BadKey {
             // no hashCode or equals();
             public final String key;
             public BadKey(String key) { this.key = key; }
          }
-         
-         while (true) {
-            Map map = System.getProperties();
-            map.put(new BadKey("key"), "value");
+         Map map = System.getProperties();
+
+         int counter = 0;
+         if (loopNumber.isPresent()) {
+             int loops = Integer.parseInt(loopNumber.get());
+             while (counter < loops) {
+                map.put(new BadKey("key"), new String("value"));
+                counter++;
          }
+         return;
     }
+
 
 
     
