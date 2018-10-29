@@ -1,4 +1,7 @@
 pipeline {
+  agent {
+    label 'maven'
+  }
   environment {
     APP_NAME = "carts"
   }
