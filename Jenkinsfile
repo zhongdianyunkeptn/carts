@@ -19,116 +19,39 @@ pipeline {
         }
       }
     }
-    stage('Docker build') {
-      when {
-        expression {
-          return env.BRANCH_NAME ==~ 'release/.*' || env.BRANCH_NAME ==~'master'
-        }
-      }
+    stage('Performance Check') {
       steps {
-        container('docker') {
-          sh "docker build -t ${env.TAG_DEV} ."
-        }
-      }
-    }
-    stage('Docker push to registry'){
-      when {
-        expression {
-          return env.BRANCH_NAME ==~ 'release/.*' || env.BRANCH_NAME ==~'master'
-        }
-      }
-      steps {
-        container('docker') {
-          sh "docker push ${env.TAG_DEV}"
-        }
-      }
-    }
-    stage('Deploy to dev namespace') {
-      when {
-        expression {
-          return env.BRANCH_NAME ==~ 'release/.*' || env.BRANCH_NAME ==~'master'
-        }
-      }
-      steps {
-        container('kubectl') {
-          sh "sed -i 's#image: .*#image: ${env.TAG_DEV}#' manifest/carts.yml"
-          sh "kubectl -n dev apply -f manifest/carts.yml"
-        }
-      }
-    }
-    stage('Run health check in dev') {
-      when {
-        expression {
-          return env.BRANCH_NAME ==~ 'release/.*' || env.BRANCH_NAME ==~'master'
-        }
-      }
-      steps {
-        echo "waiting for the service to start..."
-        sleep 90
+        checkout scm
 
-        build job: "jmeter-tests",
-          parameters: [
-            string(name: 'SCRIPT_NAME', value: 'basiccheck.jmx'),
-            string(name: 'SERVER_URL', value: "${env.APP_NAME}.dev"),
-            string(name: 'SERVER_PORT', value: '80'),
-            string(name: 'CHECK_PATH', value: '/health'),
-            string(name: 'VUCount', value: '1'),
-            string(name: 'LoopCount', value: '1'),
-            string(name: 'DT_LTN', value: "HealthCheck_${BUILD_NUMBER}"),
-            string(name: 'FUNC_VALIDATION', value: 'yes'),
-            string(name: 'AVG_RT_VALIDATION', value: '0'),
-            string(name: 'RETRY_ON_ERROR', value: 'yes')
-          ]
-      }
-    }
-    stage('Run functional check in dev') {
-      when {
-        expression {
-          return env.BRANCH_NAME ==~ 'release/.*'
+        recordDynatraceSession(
+          envId: 'Dynatrace Tenant',
+          testCase: 'loadtest',
+          tagMatchRules: [
+            [
+              meTypes: [
+                [meType: 'SERVICE']
+              ],
+              tags: [
+                [context: 'CONTEXTLESS', key: 'app', value: "${env.APP_NAME}"],
+                [context: 'CONTEXTLESS', key: 'environment', value: 'staging']
+              ]
+            ]
+          ]) {
+          build job: "jmeter-tests",
+            parameters: [
+              string(name: 'SCRIPT_NAME', value: "${env.APP_NAME}_load.jmx"),
+              string(name: 'SERVER_URL', value: "${env.APP_NAME}.staging"),
+              string(name: 'SERVER_PORT', value: '80'),
+              string(name: 'CHECK_PATH', value: '/health'),
+              string(name: 'VUCount', value: '1'), // 10
+              string(name: 'LoopCount', value: '2'), // 250
+              string(name: 'DT_LTN', value: "PerfCheck_${BUILD_NUMBER}"),
+              string(name: 'FUNC_VALIDATION', value: 'no'),
+              string(name: 'AVG_RT_VALIDATION', value: '250')
+            ]
         }
-      }
-      steps {
-        build job: "jmeter-tests",
-          parameters: [
-            string(name: 'SCRIPT_NAME', value: "${env.APP_NAME}_load.jmx"),
-            string(name: 'SERVER_URL', value: "${env.APP_NAME}.dev"),
-            string(name: 'SERVER_PORT', value: '80'),
-            string(name: 'CHECK_PATH', value: '/health'),
-            string(name: 'VUCount', value: '1'),
-            string(name: 'LoopCount', value: '1'),
-            string(name: 'DT_LTN', value: "FuncCheck_${BUILD_NUMBER}"),
-            string(name: 'FUNC_VALIDATION', value: 'yes'),
-            string(name: 'AVG_RT_VALIDATION', value: '0')
-          ]
-      }
-    }
-    stage('Mark artifact for staging namespace') {
-      when {
-        expression {
-          return env.BRANCH_NAME ==~ 'release/.*'
-        }
-      }
-      steps {
-        container('docker'){
-          sh "docker tag ${env.TAG_DEV} ${env.TAG_STAGING}"
-          sh "docker push ${env.TAG_STAGING}"
-        }
-      }
-    }
-    stage('Deploy to staging') {
-      when {
-        beforeAgent true
-        expression {
-          return env.BRANCH_NAME ==~ 'release/.*'
-        }
-      }
-      steps {
-        build job: "k8s-deploy-staging",
-          parameters: [
-            string(name: 'APP_NAME', value: "${env.APP_NAME}"),
-            string(name: 'TAG_STAGING', value: "${env.TAG_STAGING}"),
-            string(name: 'VERSION', value: "${env.VERSION}")
-          ]
+        // Now we use the Performance Signature Plugin to pull in Dynatrace Metrics based on the spec file
+        perfSigDynatraceReports envId: 'Dynatrace Tenant', nonFunctionalFailure: 1, specFile: "/monspec/${env.APP_NAME}_perfsig.json"
       }
     }
   }
