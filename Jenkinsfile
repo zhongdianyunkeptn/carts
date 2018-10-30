@@ -68,6 +68,7 @@ pipeline {
         echo "waiting for the service to start..."
         sleep 90
 
+        sh "rm -rf results"
         sh "mkdir results"
 
         container('jmeter') {
@@ -92,6 +93,9 @@ pipeline {
         }
       }
       steps {
+        sh "rm -rf results"
+        sh "mkdir results"
+
         container('jmeter') {
           executeJMeter ( 
             scriptName: "jmeter/${env.APP_NAME}_load.jmx", 
