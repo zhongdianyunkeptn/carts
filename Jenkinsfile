@@ -94,7 +94,7 @@ pipeline {
       steps {
         container('jmeter') {
           executeJMeter ( 
-            scriptName: "${env.APP_NAME}_load.jmx", 
+            scriptName: "jmeter/${env.APP_NAME}_load.jmx", 
             serverUrl: "${env.APP_NAME}.dev", 
             serverPort: 80,
             checkPath: '/health',
