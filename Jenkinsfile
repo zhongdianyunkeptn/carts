@@ -68,8 +68,7 @@ pipeline {
         echo "waiting for the service to start..."
         sleep 90
 
-        sh "rm -rf test_results"
-        sh "mkdir test_results"
+        sh "mkdir results"
 
         container('jmeter') {
           executeJMeter ( 
@@ -84,6 +83,8 @@ pipeline {
             avgRtValidation: 0
           )
         }
+
+        sh "rm -rf results"
       }
     }
     stage('Run functional check in dev') {
@@ -93,8 +94,7 @@ pipeline {
         }
       }
       steps {
-        sh "rm -rf test_results"
-        sh "mkdir test_results"
+        sh "mkdir results"
 
         container('jmeter') {
           executeJMeter ( 
@@ -109,6 +109,8 @@ pipeline {
             avgRtValidation: 0
           )
         }
+
+        sh "rm -rf results"
       }
     }
     stage('Mark artifact for staging namespace') {
