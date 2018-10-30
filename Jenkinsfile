@@ -28,7 +28,7 @@ pipeline {
         {
           build job: "jmeter-tests",
             parameters: [
-              string(name: 'SCRIPT_NAME', value: "${env.APP_NAME}_load.jmx"),
+              string(name: 'SCRIPT_NAME', value: "${env.APP_NAME}_perf_test.jmx"),
               string(name: 'SERVER_URL', value: "${env.APP_NAME}.dev"),
               string(name: 'SERVER_PORT', value: '80'),
               string(name: 'CHECK_PATH', value: '/health'),
