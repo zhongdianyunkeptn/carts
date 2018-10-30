@@ -43,7 +43,7 @@ pipeline {
         perfSigDynatraceReports(
           envId: 'Dynatrace Tenant', 
           nonFunctionalFailure: 1, 
-          specFile: "/monspec/${env.APP_NAME}_perfsig.json"
+          specFile: "monspec/${env.APP_NAME}_perfsig.json"
         ) 
       }
     }
