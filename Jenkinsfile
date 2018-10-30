@@ -65,17 +65,10 @@ pipeline {
         }
       }
       steps {
-        echo "waiting for the service to start..."
-        echo "folder information on Jenkins Server"
-          echo runSh("pwd")
-          echo runSh("ls -l")
-          
+        echo "Waiting for the service to start..."
         sleep 90
-        container('jmeter') {
-          echo "folder information within Jmeter container"
-          echo runSh("pwd")
-          echo runSh("ls -l")
-          
+        
+        container('jmeter') {        
           executeJMeter ( 
             scriptName: 'jmeter/basiccheck.jmx', 
             resultsDir: "HealthCheck_${BUILD_NUMBER}",
