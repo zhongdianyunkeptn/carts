@@ -1,6 +1,6 @@
 pipeline {
   agent {
-    label 'maven'
+    label 'git'
   }
   environment {
     APP_NAME = "carts"
@@ -28,7 +28,7 @@ pipeline {
         {
           build job: "jmeter-tests",
             parameters: [
-              string(name: 'SCRIPT_NAME', value: "${env.APP_NAME}_perf_test.jmx"),
+              string(name: 'SCRIPT_NAME', value: "${env.APP_NAME}_perfcheck.jmx"),
               string(name: 'SERVER_URL', value: "${env.APP_NAME}.dev"),
               string(name: 'SERVER_PORT', value: '80'),
               string(name: 'CHECK_PATH', value: '/health'),
@@ -39,7 +39,7 @@ pipeline {
               string(name: 'AVG_RT_VALIDATION', value: '250')
             ]
         }
-        // Now we use the Performance Signature Plugin to pull in Dynatrace Metrics based on the spec file
+
         perfSigDynatraceReports(
           envId: 'Dynatrace Tenant', 
           nonFunctionalFailure: 1, 
