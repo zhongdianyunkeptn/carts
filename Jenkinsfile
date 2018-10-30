@@ -1,3 +1,5 @@
+@Library('dynatrace@master') _
+
 pipeline {
   agent {
     label 'maven'
@@ -66,6 +68,21 @@ pipeline {
         echo "waiting for the service to start..."
         sleep 90
 
+        container('jmeter') {
+          executeJMeter ( 
+            scriptName: './scripts/basiccheck.jmx', 
+            serverUrl: "${env.APP_NAME}.dev", 
+            serverPort: 80,
+            checkPath: '/health',
+            vuCount: 1,
+            loopCount: 1,
+            LTN: "HealthCheck_${BUILD_NUMBER}",
+            funcValidation: true,
+            avgRtValidation: 0
+          )
+        }
+
+        /*
         build job: "jmeter-tests",
           parameters: [
             string(name: 'SCRIPT_NAME', value: 'basiccheck.jmx'),
@@ -79,6 +96,7 @@ pipeline {
             string(name: 'AVG_RT_VALIDATION', value: '0'),
             string(name: 'RETRY_ON_ERROR', value: 'yes')
           ]
+        */
       }
     }
     stage('Run functional check in dev') {
