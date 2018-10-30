@@ -23,7 +23,9 @@ pipeline {
                 [context: 'CONTEXTLESS', key: 'environment', value: 'dev']
               ]
             ]
-          ]) {
+          ]
+        ) 
+        {
           build job: "jmeter-tests",
             parameters: [
               string(name: 'SCRIPT_NAME', value: "${env.APP_NAME}_load.jmx"),
@@ -38,7 +40,11 @@ pipeline {
             ]
         }
         // Now we use the Performance Signature Plugin to pull in Dynatrace Metrics based on the spec file
-        perfSigDynatraceReports envId: 'Dynatrace Tenant', nonFunctionalFailure: 1, specFile: "/monspec/${env.APP_NAME}_perfsig.json"
+        perfSigDynatraceReports(
+          envId: 'Dynatrace Tenant', 
+          nonFunctionalFailure: 1, 
+          specFile: "/monspec/${env.APP_NAME}_perfsig.json"
+        ) 
       }
     }
   }
