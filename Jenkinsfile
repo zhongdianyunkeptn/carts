@@ -67,18 +67,14 @@ pipeline {
       steps {
         echo "waiting for the service to start..."
         echo "folder information on Jenkins Server"
-          String pwd=runSh("pwd")
-          echo pwd
-          String lsl=runSh("ls -l")
-          echo lsl
-
+          echo runSh("pwd")
+          echo runSh("ls -l")
+          
         sleep 90
         container('jmeter') {
           echo "folder information within Jmeter container"
-          String pwd=runSh("pwd")
-          echo pwd
-          String lsl=runSh("ls -l")
-          echo lsl
+          echo runSh("pwd")
+          echo runSh("ls -l")
           
           executeJMeter ( 
             scriptName: 'jmeter/basiccheck.jmx', 
