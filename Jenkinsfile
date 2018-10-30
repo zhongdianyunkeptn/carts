@@ -68,9 +68,11 @@ pipeline {
         echo "waiting for the service to start..."
         sleep 90
 
+        sh "mkdir results"
+
         container('jmeter') {
           executeJMeter ( 
-            scriptName: './scripts/basiccheck.jmx', 
+            scriptName: 'jmeter/basiccheck.jmx', 
             serverUrl: "${env.APP_NAME}.dev", 
             serverPort: 80,
             checkPath: '/health',
@@ -106,6 +108,23 @@ pipeline {
         }
       }
       steps {
+        sh "mkdir results"
+
+        container('jmeter') {
+          executeJMeter ( 
+            scriptName: "${env.APP_NAME}_load.jmx", 
+            serverUrl: "${env.APP_NAME}.dev", 
+            serverPort: 80,
+            checkPath: '/health',
+            vuCount: 1,
+            loopCount: 1,
+            LTN: "FuncCheck_${BUILD_NUMBER}",
+            funcValidation: true,
+            avgRtValidation: 0
+          )
+        }
+
+        /*
         build job: "jmeter-tests",
           parameters: [
             string(name: 'SCRIPT_NAME', value: "${env.APP_NAME}_load.jmx"),
@@ -118,6 +137,7 @@ pipeline {
             string(name: 'FUNC_VALIDATION', value: 'yes'),
             string(name: 'AVG_RT_VALIDATION', value: '0')
           ]
+        */
       }
     }
     stage('Mark artifact for staging namespace') {
