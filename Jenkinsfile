@@ -68,8 +68,8 @@ pipeline {
         echo "waiting for the service to start..."
         sleep 90
 
-        sh "rm -rf results"
-        sh "mkdir results"
+        sh "rm -rf test_results"
+        sh "mkdir test_results"
 
         container('jmeter') {
           executeJMeter ( 
@@ -93,8 +93,8 @@ pipeline {
         }
       }
       steps {
-        sh "rm -rf results"
-        sh "mkdir results"
+        sh "rm -rf test_results"
+        sh "mkdir test_results"
 
         container('jmeter') {
           executeJMeter ( 
