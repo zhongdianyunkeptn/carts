@@ -66,13 +66,23 @@ pipeline {
       }
       steps {
         echo "waiting for the service to start..."
+        echo "folder information on Jenkins Server"
+          String pwd=runSh("pwd")
+          echo pwd
+          String lsl=runSh("ls -l")
+          echo lsl
+
         sleep 90
-
-        sh "mkdir results"
-
         container('jmeter') {
+          echo "folder information within Jmeter container"
+          String pwd=runSh("pwd")
+          echo pwd
+          String lsl=runSh("ls -l")
+          echo lsl
+          
           executeJMeter ( 
             scriptName: 'jmeter/basiccheck.jmx', 
+            resultsDir: "HealthCheck_${BUILD_NUMBER}",
             serverUrl: "${env.APP_NAME}.dev", 
             serverPort: 80,
             checkPath: '/health',
@@ -83,8 +93,6 @@ pipeline {
             avgRtValidation: 0
           )
         }
-
-        sh "rm -rf results"
       }
     }
     stage('Run functional check in dev') {
@@ -94,11 +102,10 @@ pipeline {
         }
       }
       steps {
-        sh "mkdir results"
-
         container('jmeter') {
           executeJMeter ( 
             scriptName: "jmeter/${env.APP_NAME}_load.jmx", 
+            resultsDir: "FuncCheck_${BUILD_NUMBER}",
             serverUrl: "${env.APP_NAME}.dev", 
             serverPort: 80,
             checkPath: '/health',
@@ -109,8 +116,6 @@ pipeline {
             avgRtValidation: 0
           )
         }
-
-        sh "rm -rf results"
       }
     }
     stage('Mark artifact for staging namespace') {
