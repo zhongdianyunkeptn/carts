@@ -1,3 +1,5 @@
+@Library('dynatrace@master') _
+
 pipeline {
   agent {
     label 'git'
@@ -9,9 +11,6 @@ pipeline {
     stage('Performance Check') {
       steps {
         checkout scm
-
-        sh "rm -rf test_results"
-        sh "mkdir test_results"
 
         recordDynatraceSession(
           envId: 'Dynatrace Tenant',
@@ -31,15 +30,16 @@ pipeline {
         {
           container('jmeter') {
             executeJMeter ( 
-              scriptName: "jmeter/${env.APP_NAME}_load.jmx", 
+              scriptName: "jmeter/${env.APP_NAME}_load.jmx",
+              resultsDir: "PerfCheck_${BUILD_NUMBER}",
               serverUrl: "${env.APP_NAME}.dev", 
               serverPort: 80,
               checkPath: '/health',
               vuCount: 10,
               loopCount: 250,
               LTN: "PerfCheck_${BUILD_NUMBER}",
-              funcValidation: no,
-              avgRtValidation: 500
+              funcValidation: false,
+              avgRtValidation: 250
             )
           }
         }
