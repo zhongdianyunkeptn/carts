@@ -9,7 +9,7 @@
                     {
                         "context" : "CONTEXTLESS",
                         "key" : "environment",
-                        "value" : "jx-staging"
+                        "value" : "staging"
                     },
                     {
                         "context" : "CONTEXTLESS",
