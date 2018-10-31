@@ -69,20 +69,22 @@ pipeline {
         sleep 90
 
         container('jmeter') {
-          def status = executeJMeter ( 
-            scriptName: 'jmeter/basiccheck.jmx', 
-            resultsDir: "HealthCheck_${BUILD_NUMBER}",
-            serverUrl: "${env.APP_NAME}.dev", 
-            serverPort: 80,
-            checkPath: '/health',
-            vuCount: 1,
-            loopCount: 1,
-            LTN: "HealthCheck_${BUILD_NUMBER}",
-            funcValidation: true,
-            avgRtValidation: 0
-          )
-          if (status != 0) {
-            currentBuild.result = 'FAILED'
+          script {
+            def status = executeJMeter ( 
+              scriptName: 'jmeter/basiccheck.jmx', 
+              resultsDir: "HealthCheck_${BUILD_NUMBER}",
+              serverUrl: "${env.APP_NAME}.dev", 
+              serverPort: 80,
+              checkPath: '/health',
+              vuCount: 1,
+              loopCount: 1,
+              LTN: "HealthCheck_${BUILD_NUMBER}",
+              funcValidation: true,
+              avgRtValidation: 0
+            )
+            if (status != 0) {
+              currentBuild.result = 'FAILED'
+            }
           }
         }
       }
