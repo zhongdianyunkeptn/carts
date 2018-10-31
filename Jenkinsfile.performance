@@ -40,7 +40,7 @@ pipeline {
                 loopCount: 250,
                 LTN: "PerfCheck_${BUILD_NUMBER}",
                 funcValidation: false,
-                avgRtValidation: 250
+                avgRtValidation: 2000
               )
               if (status != 0) {
                 currentBuild.result = 'FAILED'
