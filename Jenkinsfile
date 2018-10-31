@@ -66,7 +66,7 @@ pipeline {
       }
       steps {
         echo "Waiting for the service to start..."
-        sleep 90
+        sleep 1
 
         container('jmeter') {
           script {
@@ -84,6 +84,7 @@ pipeline {
             )
             if (status != 0) {
               currentBuild.result = 'FAILED'
+              error "Health check failed"
             }
           }
         }
