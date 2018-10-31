@@ -75,7 +75,7 @@ pipeline {
               resultsDir: "HealthCheck_${BUILD_NUMBER}",
               serverUrl: "${env.APP_NAME}.dev", 
               serverPort: 80,
-              checkPath: '/healthy',
+              checkPath: '/health',
               vuCount: 1,
               loopCount: 1,
               LTN: "HealthCheck_${BUILD_NUMBER}",
