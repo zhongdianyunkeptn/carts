@@ -64,15 +64,12 @@ pipeline {
           return env.BRANCH_NAME ==~ 'release/.*' || env.BRANCH_NAME ==~'master'
         }
       }
-      environment {
-        TEST_RESULT = 0
-      }
       steps {
         echo "Waiting for the service to start..."
         sleep 90
 
-        container('jmeter') {        
-          TEST_RESULT = executeJMeter ( 
+        container('jmeter') {
+          def status = executeJMeter ( 
             scriptName: 'jmeter/basiccheck.jmx', 
             resultsDir: "HealthCheck_${BUILD_NUMBER}",
             serverUrl: "${env.APP_NAME}.dev", 
@@ -84,8 +81,10 @@ pipeline {
             funcValidation: true,
             avgRtValidation: 0
           )
+          if (status != 0) {
+            currentBuild.result = 'FAILED'
+          }
         }
-        sh "echo ${TEST_RESULT}"
       }
     }
     stage('Run functional check in dev') {
