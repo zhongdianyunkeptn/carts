@@ -72,12 +72,6 @@ public class UnitItemsController {
         assertThat(itemDAO.findOne(item.id()).quantity(), is(equalTo(anotherItem.quantity())));
     }
 
-    @Test
-    public void testMemoryLeak() {
-        itemsController.createMemoryLeak(Optional.of("100000"));
-        
-    }
-
     @Configuration
     static class ItemsControllerTestConfiguration {
         @Bean
