@@ -41,7 +41,7 @@ public class ItemsController {
     @Value("0")
     private String delayInMillis;
     @Value("0")
-    private String errorRate;
+    private String promotionRate;
 
     @ResponseStatus(HttpStatus.OK)
     @RequestMapping(value = "/{itemId:.*}", produces = MediaType.APPLICATION_JSON_VALUE, method = RequestMethod.GET)
@@ -62,15 +62,15 @@ public class ItemsController {
     }
 
     @ResponseStatus(HttpStatus.OK)
-    @RequestMapping(value = "/errors/{errors}", method = RequestMethod.GET)
-    public void setErrorRate(@PathVariable("errors") Optional<String> errorRate) {
-        String newErrorRate = "0";
+    @RequestMapping(value = "/promotion/{promotion_rate}", method = RequestMethod.GET)
+    public void setPromotionRate(@PathVariable("promotion_rate") Optional<String> promotionRate) {
+        String newPromotionRate = "0";
 
-        if (errorRate.isPresent()) {
-            newErrorRate = errorRate.get();
+        if (promotionRate.isPresent()) {
+            newPromotionRate = promotionRate.get();
         }
 
-        this.errorRate = newErrorRate;
+        this.promotionRate = newPromotionRate;
     }
 
     @ResponseStatus(HttpStatus.OK)
@@ -92,9 +92,9 @@ public class ItemsController {
             // don't do anything
         }
 
-        int errRate = Integer.parseInt(errorRate);
-        if (errRate >= (Math.random() * 100)) {
-            throw new Exception("error created by user-defined error rate.");
+        int promRate = Integer.parseInt(promotionRate);
+        if (promRate >= (Math.random() * 100)) {
+            throw new Exception("promotion campaign not yet implemented");
         }
 
         if (!foundItem.hasItem()) {
@@ -138,28 +138,28 @@ public class ItemsController {
         return "OK - endpoint available";
     }
 
-    @ResponseStatus(HttpStatus.OK)
-    @RequestMapping(method = RequestMethod.GET, path = "/memoryLeak/{loops}")
-    public void createMemoryLeak(@PathVariable("loops") Optional<String> loopNumber) {
-        class BadKey {
-            // no hashCode or equals();
-            public final String key;
+    // @ResponseStatus(HttpStatus.OK)
+    // @RequestMapping(method = RequestMethod.GET, path = "/memoryLeak/{loops}")
+    // public void createMemoryLeak(@PathVariable("loops") Optional<String> loopNumber) {
+    //     class BadKey {
+    //         // no hashCode or equals();
+    //         public final String key;
 
-            public BadKey(String key) {
-                this.key = key;
-            }
-        }
-        Map map = System.getProperties();
+    //         public BadKey(String key) {
+    //             this.key = key;
+    //         }
+    //     }
+    //     Map map = System.getProperties();
 
-        int counter = 0;
-        if (loopNumber.isPresent()) {
-            int loops = Integer.parseInt(loopNumber.get());
-            while (counter < loops) {
-                map.put(new BadKey("key"), new String("value"));
-                counter++;
-            }
-            return;
-        }
-    }
+    //     int counter = 0;
+    //     if (loopNumber.isPresent()) {
+    //         int loops = Integer.parseInt(loopNumber.get());
+    //         while (counter < loops) {
+    //             map.put(new BadKey("key"), new String("value"));
+    //             counter++;
+    //         }
+    //         return;
+    //     }
+    // }
 
 }
