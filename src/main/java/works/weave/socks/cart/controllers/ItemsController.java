@@ -38,9 +38,9 @@ public class ItemsController {
     private CartsController cartsController;
     @Autowired
     private CartDAO cartDAO;
-    @Value("0")
+    @Value("${delayInMillis}")
     private String delayInMillis;
-    @Value("0")
+    @Value("${promotionRate}")
     private String promotionRate;
 
     @ResponseStatus(HttpStatus.OK)
