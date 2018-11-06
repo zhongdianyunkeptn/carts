@@ -92,9 +92,13 @@ public class ItemsController {
             // don't do anything
         }
 
-        int promRate = Integer.parseInt(promotionRate);
-        if (promRate >= (Math.random() * 100)) {
-            throw new Exception("promotion campaign not yet implemented");
+        try {
+            int promRate = Integer.parseInt(promotionRate);
+            if (promRate >= (Math.random() * 100)) {
+                throw new Exception("promotion campaign not yet implemented");
+            }
+        } catch (Throwable e) {
+            // don't do anything
         }
 
         if (!foundItem.hasItem()) {
