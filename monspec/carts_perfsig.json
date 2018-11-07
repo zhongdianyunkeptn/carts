@@ -9,24 +9,6 @@
             "upperLimit" : 1000
         },
         {
-            "timeseriesId" : "com.dynatrace.builtin:service.responsetime",
-            "aggregation" : "percentile",
-            "tags" : "app:carts,environment:dev",
-            "upperLimit" : 1000
-        },
-        {
-            "timeseriesId" : "com.dynatrace.builtin:service.requests",
-            "aggregation" : "count",
-            "tags" : "app:carts,environment:dev",
-            "lowerLimit" : 1
-        },
-        {
-            "timeseriesId" : "com.dynatrace.builtin:service.requestspermin",
-            "aggregation" : "count",
-            "tags" : "app:carts,environment:dev",
-            "lowerLimit" : 1
-        },
-        {
             "timeseriesId" : "com.dynatrace.builtin:service.failurerate",
             "aggregation" : "avg",
             "tags" : "app:carts,environment:dev",
