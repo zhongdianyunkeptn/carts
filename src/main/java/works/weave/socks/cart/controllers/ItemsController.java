@@ -40,7 +40,7 @@ public class ItemsController {
     private CartDAO cartDAO;
     @Value("${delayInMillis}")
     private String delayInMillis;
-    @Value("${promotionRate}")
+    @Value("0")
     private String promotionRate;
 
     @ResponseStatus(HttpStatus.OK)
@@ -90,13 +90,9 @@ public class ItemsController {
             // don't do anything
         }
 
-        try {
-            int promRate = Integer.parseInt(promotionRate);
-            if (promRate >= (Math.random() * 100)) {
-                throw new Exception("promotion campaign not yet implemented");
-            }
-        } catch (Throwable e) {
-            // don't do anything
+        int promRate = Integer.parseInt(promotionRate);
+        if (promRate >= (Math.random() * 100)) {
+            throw new Exception("promotion campaign not yet implemented");
         }
 
         // If the item does not exist in the cart, create new one in the repository.
