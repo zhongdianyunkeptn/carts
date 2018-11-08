@@ -6,7 +6,7 @@
             "timeseriesId" : "com.dynatrace.builtin:service.responsetime",
             "aggregation" : "avg",
             "tags" : "app:carts,environment:dev",
-            "upperLimit" : 1000
+            "upperLimit" : 3000
         },
         {
             "timeseriesId" : "com.dynatrace.builtin:service.failurerate",
