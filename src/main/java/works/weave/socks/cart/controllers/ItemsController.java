@@ -82,8 +82,6 @@ public class ItemsController {
     @ResponseStatus(HttpStatus.CREATED)
     @RequestMapping(consumes = MediaType.APPLICATION_JSON_VALUE, method = RequestMethod.POST)
     public Item addToCart(@PathVariable String customerId, @RequestBody Item item) throws Exception {
-        // If the item does not exist in the cart, create new one in the repository.
-        FoundItem foundItem = new FoundItem(() -> cartsController.get(customerId).contents(), () -> item);
 
         try {
             int millis = Integer.parseInt(delayInMillis);
@@ -100,6 +98,9 @@ public class ItemsController {
         } catch (Throwable e) {
             // don't do anything
         }
+
+        // If the item does not exist in the cart, create new one in the repository.
+        FoundItem foundItem = new FoundItem(() -> cartsController.get(customerId).contents(), () -> item);
 
         if (!foundItem.hasItem()) {
             Supplier<Item> newItem = new ItemResource(itemDAO, () -> item).create();
