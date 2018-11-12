@@ -12,6 +12,49 @@ pipeline {
       steps {
         checkout scm
 
+        recordDynatraceSession(
+          envId: 'Dynatrace Tenant',
+          testCase: 'loadtest',
+          tagMatchRules: [
+            [
+              meTypes: [
+                [meType: 'SERVICE']
+              ],
+              tags: [
+                [context: 'CONTEXTLESS', key: 'app', value: "${env.APP_NAME}"],
+                [context: 'CONTEXTLESS', key: 'environment', value: 'dev']
+              ]
+            ]
+          ]
+        ) 
+        {
+          container('jmeter') {
+            script {
+              def status = executeJMeter ( 
+                scriptName: "jmeter/${env.APP_NAME}_perfcheck.jmx",
+                resultsDir: "PerfCheck_${env.APP_NAME}",
+                serverUrl: "${env.APP_NAME}.dev", 
+                serverPort: 80,
+                checkPath: '/health',
+                vuCount: 10,
+                loopCount: 250,
+                LTN: "PerfCheck_${BUILD_NUMBER}",
+                funcValidation: false,
+                avgRtValidation: 4000
+              )
+              if (status != 0) {
+                currentBuild.result = 'FAILED'
+                error "Performance check failed."
+              }
+            }
+          }
+        }
+
+        perfSigDynatraceReports(
+          envId: 'Dynatrace Tenant', 
+          nonFunctionalFailure: 1, 
+          specFile: "monspec/${env.APP_NAME}_perfsig.json"
+        ) 
       }
     }
   }
