@@ -4,8 +4,8 @@
             "timeseriesId" : "com.dynatrace.builtin:service.responsetime",
             "aggregation" : "avg",
             "tags" : "app:carts,environment:dev",
-            "upperLimit" : 300,
-            "lowerLimit" : 200
+            "upperLimit" : 500,
+            "lowerLimit" : 400
         },
         {
             "timeseriesId" : "com.dynatrace.builtin:service.failurerate",
