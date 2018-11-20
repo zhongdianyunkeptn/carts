@@ -6,6 +6,15 @@
         "owner" : "carts-team",
         "_comment" : "This defines our initial thoughts about monitoring, maybe!",
         "environments" : { 
+            "Dev" : {
+                "tags" : [
+                    {
+                        "context": "CONTEXTLESS",
+                        "key": "DeploymentGroup", 
+                        "value": "Dev"
+                    }                
+                ]
+            },
             "Staging" : {
                 "tags" : [
                     {
