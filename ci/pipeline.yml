@@ -9,12 +9,13 @@ groups:
   - deploy-to-staging
   # - run-e2e-test
   # - validate-test-result
-  # - promote-new-version
+  - deploy-to-production
+  - promote-new-version
   # - upload-git-release
 
-# - name: init-dynatrace
-#   jobs: 
-#   - init-dynatrace-carts
+- name: init-dynatrace
+  jobs: 
+  - init-dynatrace-carts
 
 #resource_types:
 # - name: dynatrace-resource
@@ -97,15 +98,15 @@ resources:
     space: ((pcf-staging-space))
     skip_cert_check: false
 
-#- name: pcf-production
-#  type: cf
-#  source:
-#    api: ((pcf-prod-api))
-#    username: ((pcf-prod-deploy-username))
-#    password: ((pcf-prod-deploy-password))
-#    organization: ((pcf-prod-organization))
-#    space: ((pcf-prod-space))
-#    skip_cert_check: false
+- name: pcf-production
+  type: cf
+  source:
+    api: ((pcf-production-api))
+    username: ((pcf-username))
+    password: ((pcf-password))
+    organization: ((pcf-production-organization))
+    space: ((pcf-production-space))
+    skip_cert_check: false
 
 jobs:
 
@@ -338,12 +339,12 @@ jobs:
 #   - task: get-current-app-color
 #     file: git-pipeline/deploy/cloud-foundry/ci/tasks/current-app-get-info.yml
 #     params:
-#       PCF_APP_SUFFIX: ((pcf-prod-carts-suffix))
-#       PCF_API: ((pcf-prod-api))
-#       PCF_ORG: ((pcf-prod-organization))
-#       PCF_USER: ((pcf-prod-deploy-username))
-#       PCF_PWD: ((pcf-prod-deploy-password))
-#       PCF_SPACE: ((pcf-prod-space))    
+#       PCF_APP_SUFFIX: ((pcf-production-carts-suffix))
+#       PCF_API: ((pcf-production-api))
+#       PCF_ORG: ((pcf-production-organization))
+#       PCF_SPACE: ((pcf-production-space))    
+#       PCF_USER: ((pcf-username))
+#       PCF_PWD: ((pcf-password))
 #   - task: validate-via-monspec
 #     file: git-pipeline/deploy/cloud-foundry/ci/tasks/validate-via-monspec.yml
 #     params: 
@@ -352,35 +353,74 @@ jobs:
 #       tenanthost: ((tenanthost))
 #       APP_REPO: git-carts   
 
-# - name: promote-new-version
-#   serial: true
-#   public: true
-#   plan:
-#   - get: git-carts
-#     trigger: true
-#     passed:
-#       - run-e2e-test
-#   - get: git-pipeline
-#     trigger: false      
-#   - task: get-current-app-color
-#     file: git-pipeline/deploy/cloud-foundry/ci/tasks/current-app-get-info.yml
-#     params:
-#       PCF_APP_SUFFIX: ((pcf-prod-carts-suffix))
-#       PCF_API: ((pcf-prod-api))
-#       PCF_ORG: ((pcf-prod-organization))
-#       PCF_USER: ((pcf-prod-deploy-username))
-#       PCF_PWD: ((pcf-prod-deploy-password))
-#       PCF_SPACE: ((pcf-prod-space))   
-#   - task: switch-app-routes
-#     file: git-pipeline/deploy/cloud-foundry/ci/tasks/update-routes.yml
-#     params:
-#       PCF_APP_SUFFIX: ((pcf-prod-carts-suffix))
-#       PCF_API: ((pcf-prod-api))
-#       PCF_ORG: ((pcf-prod-organization))
-#       PCF_USER: ((pcf-prod-deploy-username))
-#       PCF_PWD: ((pcf-prod-deploy-password))
-#       PCF_SPACE: ((pcf-prod-space))
-#       PCF_APP_DOMAIN: ((pcf-prod-app-domain))
+- name: deploy-to-production
+  serial: true
+  public: true
+  plan:
+  - get: git-carts
+    trigger: true
+    passed:
+      - deploy-to-staging
+  - get: carts-release-bucket
+    passed:
+      - maven-build
+  - get: git-pipeline
+    trigger: false      
+  - task: get-current-app-color
+    file: git-pipeline/deploy/cloud-foundry/ci/tasks/current-app-get-info.yml
+    params:
+      PCF_APP_SUFFIX: ((pcf-production-carts-suffix))
+      PCF_API: ((pcf-production-api))
+      PCF_ORG: ((pcf-production-organization))
+      PCF_SPACE: ((pcf-production-space))  
+      PCF_USER: ((pcf-username))
+      PCF_PWD: ((pcf-password))
+  - task: prepare-app-manifest
+    file: git-pipeline/deploy/cloud-foundry/ci/tasks/app-manifest-prep.yml
+    params:
+      PCF_APP_SUFFIX: ((pcf-production-carts-suffix)) 
+      APP_REPO: git-carts
+      PRODUCTION: true                 
+  # - put: dynatrace
+  #   params:
+  #     monspecserviceenvironment: carts/Production
+  #     pipelinetaskname: deploy-carts-to-prod
+  #     deployversion: v1.0 
+  #     APP_REPO: git-carts 
+  - put: pcf-production
+    params:
+      path: carts-release-bucket/carts-*.jar
+      manifest: app-manifest-output/manifest.yml
+
+- name: promote-new-version
+  serial: true
+  public: true
+  plan:
+  - get: git-carts
+    trigger: true
+    passed:
+      - deploy-to-production
+  - get: git-pipeline
+    trigger: false      
+  - task: get-current-app-color
+    file: git-pipeline/deploy/cloud-foundry/ci/tasks/current-app-get-info.yml
+    params:
+      PCF_APP_SUFFIX: ((pcf-production-carts-suffix))
+      PCF_API: ((pcf-production-api))
+      PCF_ORG: ((pcf-production-organization))
+      PCF_SPACE: ((pcf-production-space))  
+      PCF_USER: ((pcf-username))
+      PCF_PWD: ((pcf-password))
+  - task: switch-app-routes
+    file: git-pipeline/deploy/cloud-foundry/ci/tasks/update-routes.yml
+    params:
+      PCF_APP_SUFFIX: ((pcf-production-carts-suffix))
+      PCF_APP_DOMAIN: ((pcf-production-app-domain))
+      PCF_API: ((pcf-production-api))
+      PCF_ORG: ((pcf-production-organization))
+      PCF_SPACE: ((pcf-production-space))
+      PCF_USER: ((pcf-username))
+      PCF_PWD: ((pcf-password))
 
 #- name: upload-carts-git-release
 #  public: true
