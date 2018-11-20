@@ -17,11 +17,11 @@ groups:
   jobs: 
   - init-dynatrace-carts
 
-#resource_types:
-# - name: dynatrace-resource
-#   type: docker-image
-#   source:
-#     repository: mvilliger/dynatrace-resource
+resource_types:
+- name: dynatrace-resource
+  type: docker-image
+  source:
+    repository: mvilliger/dynatrace-resource
 
 resources:
 
@@ -46,11 +46,11 @@ resources:
     branch: master
     uri: https://github.com/((workshop-repository))/carts.git
 
-# - name: dynatrace
-#   type: dynatrace-resource
-#   source:
-#     apitoken: ((dt_api_token))
-#     tenanthost: ((dt_tenant_url))
+- name: dynatrace
+  type: dynatrace-resource
+  source:
+    apitoken: ((dt_api_token))
+    tenanthost: ((dt_tenant_url))
 
 - name: carts-release-bucket
   type: s3
@@ -121,8 +121,8 @@ jobs:
   - task: init-dynatrace-task
     file: git-pipeline/deploy/cloud-foundry/ci/tasks/init-dynatrace-task.yml
     params: 
-      apitoken: ((apitoken))
-      tenanthost: ((tenanthost))
+      apitoken: ((dt_api_token))
+      tenanthost: ((dt_tenant_url))
       APP_REPO: git-carts
 
 # Build jMeter Test Image
@@ -198,11 +198,12 @@ jobs:
   - task: prepare-app-manifest
     file: git-pipeline/deploy/cloud-foundry/ci/tasks/app-manifest-prep.yml
     params:
+      STAGE: Dev
       PCF_APP_SUFFIX: ((pcf-dev-carts-suffix)) 
       APP_REPO: git-carts           
   # - put: dynatrace
   #   params:
-  #     monspecserviceenvironment: carts/dev
+  #     monspecserviceenvironment: carts/Dev
   #     pipelinetaskname: deploy-to-dev
   #     deployversion: v1.0
   #     APP_REPO: git-carts
@@ -283,14 +284,15 @@ jobs:
   - task: prepare-app-manifest
     file: git-pipeline/deploy/cloud-foundry/ci/tasks/app-manifest-prep.yml
     params:
+      STAGE: Staging
       PCF_APP_SUFFIX: ((pcf-staging-carts-suffix)) 
       APP_REPO: git-carts               
-  # - put: dynatrace
-  #   params:
-  #     monspecserviceenvironment: carts/Production
-  #     pipelinetaskname: deploy-to-prod
-  #     deployversion: v1.0 
-  #     APP_REPO: git-carts 
+  - put: dynatrace
+    params:
+      monspecserviceenvironment: carts/Staging
+      pipelinetaskname: deploy-to-staging
+      deployversion: v1.0 
+      APP_REPO: git-carts 
   - put: pcf-staging
     params:
       path: carts-release-bucket/carts-*.jar
@@ -378,15 +380,15 @@ jobs:
   - task: prepare-app-manifest
     file: git-pipeline/deploy/cloud-foundry/ci/tasks/app-manifest-prep.yml
     params:
+      STAGE: Production 
       PCF_APP_SUFFIX: ((pcf-production-carts-suffix)) 
-      APP_REPO: git-carts
-      PRODUCTION: true                 
-  # - put: dynatrace
-  #   params:
-  #     monspecserviceenvironment: carts/Production
-  #     pipelinetaskname: deploy-carts-to-prod
-  #     deployversion: v1.0 
-  #     APP_REPO: git-carts 
+      APP_REPO: git-carts                
+  - put: dynatrace
+    params:
+      monspecserviceenvironment: carts/Production
+      pipelinetaskname: deploy-to-production
+      deployversion: v1.0 
+      APP_REPO: git-carts 
   - put: pcf-production
     params:
       path: carts-release-bucket/carts-*.jar
