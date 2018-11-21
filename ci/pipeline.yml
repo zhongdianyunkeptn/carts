@@ -55,7 +55,7 @@ resources:
   type: dynatrace-resource
   source:
     apitoken: ((dt_api_token))
-    tenanthost: ((dt_tenant_url))
+    tenanthost: ((dt_tenant_host))
 
 - name: carts-release-bucket
   type: s3
@@ -127,7 +127,7 @@ jobs:
     file: git-pipeline/deploy/cloud-foundry/ci/tasks/init-dynatrace-task.yml
     params: 
       apitoken: ((dt_api_token))
-      tenanthost: ((dt_tenant_url))
+      tenanthost: ((dt_tenant_host))
       APP_REPO: git-carts
 
 # Build jMeter Test Image
@@ -336,7 +336,7 @@ jobs:
     params: 
       monspecserviceenvironment: carts/Staging
       apitoken: ((dt_api_token))
-      tenanthost: ((dt_tenant_url))
+      tenanthost: ((dt_tenant_host))
       APP_REPO: git-carts  
 
 - name: validate-e2e-check
@@ -354,7 +354,7 @@ jobs:
     params: 
       monspeccomparison: carts/StagingToStagingLastHour
       apitoken: ((dt_api_token))
-      tenanthost: ((dt_tenant_url))
+      tenanthost: ((dt_tenant_host))
       APP_REPO: git-carts   
 
 - name: deploy-to-production
@@ -480,7 +480,7 @@ jobs:
     params: 
       monspecserviceenvironment: carts/Dev
       apitoken: ((dt_api_token))
-      tenanthost: ((dt_tenant_url))
+      tenanthost: ((dt_tenant_host))
       APP_REPO: git-carts 
 
 - name: validate-performance-check
@@ -498,5 +498,5 @@ jobs:
     params: 
       monspeccomparison: carts/DevToDevLastHour
       apitoken: ((dt_api_token))
-      tenanthost: ((dt_tenant_url))
+      tenanthost: ((dt_tenant_host))
       APP_REPO: git-carts 

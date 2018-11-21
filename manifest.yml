@@ -1,7 +1,7 @@
 ---
 applications:
 - name: APPNAME
-  memory: 1G
+  memory: 768M
   instances: 1
   buildpack: java_buildpack_offline
   env:
