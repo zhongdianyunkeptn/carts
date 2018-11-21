@@ -316,7 +316,7 @@ jobs:
     file: git-pipeline/deploy/cloud-foundry/ci/tasks/jmeter-test.yml
     params:    
       APP_REPO: git-carts
-      #APP_REPO: git-pipeline
+      #APP_REPO: git-pipeline               ### normally, use front-end e2e test for e2e-testing.
       PRODUCTION: false
       SCRIPT_NAME: jmeter/carts_load.jmx
       #SCRIPT_NAME: deploy/cloud-foundry/ci/jmeter/front-end_e2e_load.jmx
