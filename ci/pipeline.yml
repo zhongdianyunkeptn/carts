@@ -473,7 +473,7 @@ jobs:
       PCF_APP_DOMAIN: ((pcf-dev-app-domain))
       SERVER_PORT: 80
       VU_COUNT: 10
-      LOOP_COUNT: 250
+      LOOP_COUNT: 25 #250
       DT_LTN: FuncCheck
       FUNC_VALIDATION: false
       AVG_RT_VALIDATION: 3000
