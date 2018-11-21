@@ -329,8 +329,8 @@ jobs:
 #     file: git-pipeline/deploy/cloud-foundry/ci/tasks/push-dynatrace-monspec-data.yml
 #     params: 
 #       monspecserviceenvironment: carts/Production-$NEXT_APP_COLOR
-#       apitoken: ((apitoken))
-#       tenanthost: ((tenanthost))
+#       apitoken: ((dt_api_token))
+#       tenanthost: ((dt_tenant_url))
 #       APP_REPO: git-carts  
 
 # - name: validate-e2e-check
@@ -356,8 +356,8 @@ jobs:
 #     file: git-pipeline/deploy/cloud-foundry/ci/tasks/validate-via-monspec.yml
 #     params: 
 #       monspeccomparison: carts/Production-$NEXT_APP_COLOR\ToProduction-$CURRENT_APP_COLOR\Last5m
-#       apitoken: ((apitoken))
-#       tenanthost: ((tenanthost))
+#       apitoken: ((dt_api_token))
+#       tenanthost: ((dt_tenant_url))
 #       APP_REPO: git-carts   
 
 - name: deploy-to-production
@@ -473,7 +473,7 @@ jobs:
       PCF_APP_DOMAIN: ((pcf-dev-app-domain))
       SERVER_PORT: 80
       VU_COUNT: 10
-      LOOP_COUNT: 25 #250
+      LOOP_COUNT: 250
       DT_LTN: FuncCheck
       FUNC_VALIDATION: false
       AVG_RT_VALIDATION: 3000
