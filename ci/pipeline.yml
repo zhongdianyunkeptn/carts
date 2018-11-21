@@ -303,62 +303,57 @@ jobs:
       deployversion: v1.0 
       APP_REPO: git-carts 
 
-# - name: run-e2e-test
-#   serial: true
-#   public: true
-#   plan:
-#   - aggregate:
-#     - get: git-carts
-#       trigger: true
-#       passed:
-#        - deploy-to-staging
-#     - get: git-pipeline
-#   - task: run-e2e-check
-#     file: git-pipeline/deploy/cloud-foundry/ci/tasks/load-tests.yml
-#     params:
-#       APP_REPO: git-pipeline
-#       FUNC_VALIDATION: yes
-#       PRODUCTION: true
-#       SCRIPT_NAME: deploy/cloud-foundry/ci/jmeterfront-end_e2e_load.jmx
-#       PCF_APP_SUFFIX: ((pcf-staging-carts-suffix))
-#       PCF_APP_DOMAIN: ((pcf-staging-app-domain))
-#       DT_LTN: e2eCheck
-#       VUCount: 5
-#       LoopCount: 20 
-#   - task: push-dynatrace-monspec-data
-#     file: git-pipeline/deploy/cloud-foundry/ci/tasks/push-dynatrace-monspec-data.yml
-#     params: 
-#       monspecserviceenvironment: carts/Production-$NEXT_APP_COLOR
-#       apitoken: ((dt_api_token))
-#       tenanthost: ((dt_tenant_url))
-#       APP_REPO: git-carts  
+- name: run-e2e-test
+  serial: true
+  public: true
+  plan:
+  - get: git-carts
+    trigger: true
+    passed:
+     - deploy-to-staging
+  - get: git-pipeline
+  - task: run-e2e-check
+    file: git-pipeline/deploy/cloud-foundry/ci/tasks/load-tests.yml
+    params:    
+      APP_REPO: git-carts
+      PRODUCTION: false
+      SCRIPT_NAME: jmeter/carts_load.jmx
+      #SCRIPT_NAME: deploy/cloud-foundry/ci/jmeter/front-end_e2e_load.jmx
+      RESULT_DIR: e2eCheck
+      PCF_APP_SUFFIX: ((pcf-staging-carts-suffix))
+      PCF_APP_DOMAIN: ((pcf-staging-app-domain))
+      SERVER_PORT: 80
+      VU_COUNT: 10
+      LOOP_COUNT: 250
+      DT_LTN: e2eCheck
+      FUNC_VALIDATION: false
+      AVG_RT_VALIDATION: 3000
+      THINK_TIME: 0
+  - task: push-dynatrace-monspec-data
+    file: git-pipeline/deploy/cloud-foundry/ci/tasks/push-dynatrace-monspec-data.yml
+    params: 
+      monspecserviceenvironment: carts/Staging
+      apitoken: ((dt_api_token))
+      tenanthost: ((dt_tenant_url))
+      APP_REPO: git-carts  
 
-# - name: validate-e2e-check
-#   serial: true
-#   public: true
-#   plan:
-#   - get: git-carts
-#     trigger: true
-#     passed:
-#       - run-e2e-test
-#   - get: git-pipeline
-#     trigger: false      
-#   - task: get-current-app-color
-#     file: git-pipeline/deploy/cloud-foundry/ci/tasks/current-app-get-info.yml
-#     params:
-#       PCF_APP_SUFFIX: ((pcf-production-carts-suffix))
-#       PCF_API: ((pcf-production-api))
-#       PCF_ORG: ((pcf-production-organization))
-#       PCF_SPACE: ((pcf-production-space))    
-#       PCF_USER: ((pcf-username))
-#       PCF_PWD: ((pcf-password))
-#   - task: validate-via-monspec
-#     file: git-pipeline/deploy/cloud-foundry/ci/tasks/validate-via-monspec.yml
-#     params: 
-#       monspeccomparison: carts/Production-$NEXT_APP_COLOR\ToProduction-$CURRENT_APP_COLOR\Last5m
-#       apitoken: ((dt_api_token))
-#       tenanthost: ((dt_tenant_url))
-#       APP_REPO: git-carts   
+- name: validate-e2e-check
+  serial: true
+  public: true
+  plan:
+  - get: git-carts
+    trigger: true
+    passed:
+      - run-e2e-test
+  - get: git-pipeline
+    trigger: false      
+  - task: validate-via-monspec
+    file: git-pipeline/deploy/cloud-foundry/ci/tasks/validate-via-monspec.yml
+    params: 
+      monspeccomparison: carts/StagingToStagingLastHour
+      apitoken: ((dt_api_token))
+      tenanthost: ((dt_tenant_url))
+      APP_REPO: git-carts   
 
 - name: deploy-to-production
   serial: true
