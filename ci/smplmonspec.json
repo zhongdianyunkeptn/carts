@@ -119,12 +119,12 @@
                 "timeseries" : "com.dynatrace.builtin:service.responsetime",
                 "aggregate" : "avg",
                 "validate" : "upper",
-                "upperlimit" : 800000
+                "upperlimit" : 1200000
             },
             { 
                 "timeseries" : "com.dynatrace.builtin:service.responsetime",
                 "aggregate" : "p90",
-                "upperlimit" : 1000000
+                "upperlimit" : 1200000
             },
             { 
                 "timeseries" : "com.dynatrace.builtin:service.failurerate",

@@ -301,7 +301,7 @@ jobs:
       monspecserviceenvironment: carts/Staging
       pipelinetaskname: deploy-to-staging
       deployversion: v1.0 
-      APP_REPO: git-carts 
+      APP_REPO: git-carts
 
 - name: run-e2e-check
   serial: true
