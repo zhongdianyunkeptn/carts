@@ -20,6 +20,7 @@ groups:
 - name: performance
   jobs:
   - run-performance-check
+  - validate-performance-check
 
 resource_types:
 - name: dynatrace-resource
@@ -461,7 +462,7 @@ jobs:
     - get: git-carts
       trigger: false
     - get: git-pipeline
-  - task: run-functional-check
+  - task: run-performance-check
     file: git-pipeline/deploy/cloud-foundry/ci/tasks/jmeter-test.yml
     params:
       APP_REPO: git-carts
@@ -482,5 +483,23 @@ jobs:
     params: 
       monspecserviceenvironment: carts/Dev
       apitoken: ((dt_api_token))
-      tenanthost: ((dt_tenant_host))
+      tenanthost: ((dt_tenant_url))
+      APP_REPO: git-carts 
+
+- name: validate-performance-check
+  serial: true
+  public: true
+  plan:
+  - get: git-carts
+    trigger: true
+    passed:
+      - run-performance-check
+  - get: git-pipeline
+    trigger: false      
+  - task: validate-via-monspec
+    file: git-pipeline/deploy/cloud-foundry/ci/tasks/validate-via-monspec.yml
+    params: 
+      monspeccomparison: carts/DevToDevLastHour
+      apitoken: ((dt_api_token))
+      tenanthost: ((dt_tenant_url))
       APP_REPO: git-carts 

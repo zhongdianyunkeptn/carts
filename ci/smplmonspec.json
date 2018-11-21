@@ -84,6 +84,14 @@
                 "shiftcomparetimeframe" : 1440
             },
             { 
+                "name" : "DevToDevLastHour",
+                "source" : "Dev",
+                "compare" : "Dev",
+                "scalefactorperc" : { "default": 10},
+                "shiftsourcetimeframe" : 2,
+                "shiftcomparetimeframe" : 60
+            },
+            { 
                 "name" : "StagingToStagingLastHour",
                 "source" : "Staging",
                 "compare" : "Staging",
