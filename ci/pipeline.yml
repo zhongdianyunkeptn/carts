@@ -205,17 +205,17 @@ jobs:
     params:
       STAGE: Dev
       PCF_APP_SUFFIX: ((pcf-dev-carts-suffix)) 
-      APP_REPO: git-carts           
+      APP_REPO: git-carts
+  - put: pcf-dev
+    params:
+      path: carts-release-bucket/carts-*.jar
+      manifest: app-manifest-output/manifest.yml    
   - put: dynatrace
     params:
       monspecserviceenvironment: carts/Dev
       pipelinetaskname: deploy-to-dev
       deployversion: v1.0
       APP_REPO: git-carts
-  - put: pcf-dev
-    params:
-      path: carts-release-bucket/carts-*.jar
-      manifest: app-manifest-output/manifest.yml
 
 - name: run-health-check
   serial: true
@@ -291,17 +291,17 @@ jobs:
     params:
       STAGE: Staging
       PCF_APP_SUFFIX: ((pcf-staging-carts-suffix)) 
-      APP_REPO: git-carts               
+      APP_REPO: git-carts
+  - put: pcf-staging
+    params:
+      path: carts-release-bucket/carts-*.jar
+      manifest: app-manifest-output/manifest.yml             
   - put: dynatrace
     params:
       monspecserviceenvironment: carts/Staging
       pipelinetaskname: deploy-to-staging
       deployversion: v1.0 
       APP_REPO: git-carts 
-  - put: pcf-staging
-    params:
-      path: carts-release-bucket/carts-*.jar
-      manifest: app-manifest-output/manifest.yml  
 
 # - name: run-e2e-test
 #   serial: true
@@ -388,16 +388,16 @@ jobs:
       STAGE: Production 
       PCF_APP_SUFFIX: ((pcf-production-carts-suffix)) 
       APP_REPO: git-carts                
+  - put: pcf-production
+    params:
+      path: carts-release-bucket/carts-*.jar
+      manifest: app-manifest-output/manifest.yml
   - put: dynatrace
     params:
       monspecserviceenvironment: carts/Production
       pipelinetaskname: deploy-to-production
       deployversion: v1.0 
       APP_REPO: git-carts 
-  - put: pcf-production
-    params:
-      path: carts-release-bucket/carts-*.jar
-      manifest: app-manifest-output/manifest.yml
 
 - name: promote-new-version
   serial: true
