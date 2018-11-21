@@ -124,7 +124,7 @@
             { 
                 "timeseries" : "com.dynatrace.builtin:service.responsetime",
                 "aggregate" : "p90",
-                "upperlimit" : 1200000
+                "upperlimit" : 1400000
             },
             { 
                 "timeseries" : "com.dynatrace.builtin:service.failurerate",
