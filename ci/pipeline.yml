@@ -11,6 +11,7 @@ groups:
   - validate-e2e-check
   - deploy-to-production
   - promote-new-version
+  #- mark-for-staging-ready
   # - upload-git-release
 
 - name: init-dynatrace
@@ -50,6 +51,14 @@ resources:
   source:
     branch: master
     uri: https://github.com/((workshop-repository))/carts.git
+
+# - name: cf-deploy-staging
+#   type: git
+#   source:
+#     branch: master
+#     uri: https://github.com/johannes-b/cf-deploy-staging.git
+#     username: johannes-b
+#     password: ##
 
 - name: dynatrace
   type: dynatrace-resource
@@ -272,7 +281,49 @@ jobs:
       FUNC_VALIDATION: true
       AVG_RT_VALIDATION: 3000
       THINK_TIME: 0
-          
+
+# - name: mark-for-staging-ready
+#   serial: true
+#   public: true
+#   plan:
+#   - get: git-carts
+#     trigger: true
+#     passed:
+#       - run-functional-check
+#   - get: cf-deploy-staging
+#   - task: mark-for-staging
+#     config:
+#       platform: linux
+#       image_resource:
+#         type: docker-image
+#         source:
+#           repository: concourse/buildroot
+#           tag: git
+#       inputs:
+#       - name: cf-deploy-staging
+#       outputs:
+#       - name: cf-deploy-staging-update
+#       run:
+#         path: /bin/bash
+#         args:
+#         - -c
+#         - |
+#           set -eux
+
+#           git clone cf-deploy-staging cf-deploy-staging-update
+
+#           cd cf-deploy-staging-update/staging-ready
+#           echo "carts" >> service
+
+#           git add .
+
+#           git config --global user.name "johannes-b"
+#           git config --global user.email "johannes.braeuer@gmx.at"
+
+#           git commit -m "Mark carts service for staging ready."
+#   - put: cf-deploy-staging  
+#     params: {repository: cf-deploy-staging-update}
+
 - name: deploy-to-staging
   serial: true
   public: true

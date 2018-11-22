@@ -138,7 +138,7 @@
             },
             {
                 "smartscape" : "toRelationships:calls",
-                "upperlimit" : "1",
+                "upperlimit" : "5",
                 "aggregate" : "count",
                 "validate" : "lower"
             },
