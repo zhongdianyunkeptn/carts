@@ -5,6 +5,6 @@ applications:
   instances: 1
   buildpack: java_buildpack_offline
   env:
-    DT_NODE_ID: NODE_ID
+    DT_NODE_ID: NODEID
     DT_CUSTOM_PROP: DEPLOYMENT_GRP_NME=DTGRP DEPLOYMENT_COLOR=APPCOLOR
     DEPLOYMENT_GRP_NME: DTGRP
