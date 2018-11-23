@@ -6,7 +6,7 @@ pipeline {
   }
   environment {
     APP_NAME = "carts"
-    VERSION = readFile 'version'
+    VERSION = readFile('version').trim()
     ARTEFACT_ID = "sockshop/" + "${env.APP_NAME}"
     TAG = "${env.DOCKER_REGISTRY_URL}:5000/library/${env.ARTEFACT_ID}"
     TAG_DEV = "${env.TAG}-${env.VERSION}-${env.BUILD_NUMBER}"

@@ -1,23 +1,27 @@
 ---
 groups:
-- name: carts-jobs
+- name: build-pipeline
   jobs:
-  - build-carts
-  - deploy-carts-to-stage
-  - health-check
-  - deploy-carts-to-prod
-  - execute-carts-load-tests
-  - validate-carts-load-test
-  - promote-new-version-carts
-  - upload-carts-git-release
+  - maven-build
+  - deploy-to-dev
+  - run-health-check
+  - run-functional-check
+  - deploy-to-staging
+  - run-e2e-check
+  - validate-e2e-check
+  - deploy-to-production
+  - promote-new-version
+  #- mark-for-staging-ready
+  # - upload-git-release
 
 - name: init-dynatrace
   jobs: 
   - init-dynatrace-carts
 
-- name: jmeter-test
+- name: performance
   jobs:
-  - build-jmeter-test-image
+  - run-performance-check
+  - validate-performance-check
 
 resource_types:
 - name: dynatrace-resource
@@ -28,12 +32,12 @@ resource_types:
 resources:
 
 #GitHub Release Repository
-- name: carts-release
-  type: github-release
-  source:
-    owner: acm-workshop-concourse
-    repository: carts
-    access_token: ((github-access-token))
+#- name: carts-release
+#  type: github-release
+#  source:
+#    owner: acm-workshop-concourse
+#    repository: carts
+#    access_token: ((github-access-token))
 
 # GitHub Repositories
 - name: git-pipeline
@@ -42,23 +46,25 @@ resources:
     branch: master
     uri: https://github.com/((workshop-repository))/sockshop.git
 
-- name: git-jmeter-as-container
-  type: git
-  source:
-    branch: master
-    uri: https://github.com/((workshop-repository))/jmeter-as-container.git
-
 - name: git-carts
   type: git
   source:
     branch: master
     uri: https://github.com/((workshop-repository))/carts.git
 
+# - name: cf-deploy-staging
+#   type: git
+#   source:
+#     branch: master
+#     uri: https://github.com/johannes-b/cf-deploy-staging.git
+#     username: johannes-b
+#     password: ##
+
 - name: dynatrace
   type: dynatrace-resource
   source:
-    apitoken: ((apitoken))
-    tenanthost: ((tenanthost))
+    apitoken: ((dt_api_token))
+    tenanthost: ((dt_tenant_host))
 
 - name: carts-release-bucket
   type: s3
@@ -77,33 +83,43 @@ resources:
     branch: master
     file: version
 
-- name: jmeter-test-image
-  type: docker-image
-  source:
-    repository: ((docker-hub-repository))/jmeter-test
-    username: ((docker-hub-username))
-    password: ((docker-hub-password))
+# - name: jmeter-test-image
+#   type: docker-image
+#   source:
+#     repository: ((docker-hub-repository))/jmeter-test
+#     username: ((docker-hub-username))
+#     password: ((docker-hub-password))
 
 # PCF Environments
 
-- name: pcf-stage
+- name: pcf-dev
   type: cf
   source:
-    api: ((pcf-stage-api))
-    username: ((pcf-stage-deploy-username))
-    password: ((pcf-stage-deploy-password))
-    organization: ((pcf-stage-organization))
-    space: ((pcf-stage-space))
+    api: ((pcf-dev-api))
+    username: ((pcf-username))
+    password: ((pcf-password))
+    organization: ((pcf-dev-organization))
+    space: ((pcf-dev-space))
+    skip_cert_check: false
+
+- name: pcf-staging
+  type: cf
+  source:
+    api: ((pcf-staging-api))
+    username: ((pcf-username))
+    password: ((pcf-password))
+    organization: ((pcf-staging-organization))
+    space: ((pcf-staging-space))
     skip_cert_check: false
 
 - name: pcf-production
   type: cf
   source:
-    api: ((pcf-prod-api))
-    username: ((pcf-prod-deploy-username))
-    password: ((pcf-prod-deploy-password))
-    organization: ((pcf-prod-organization))
-    space: ((pcf-prod-space))
+    api: ((pcf-production-api))
+    username: ((pcf-username))
+    password: ((pcf-password))
+    organization: ((pcf-production-organization))
+    space: ((pcf-production-space))
     skip_cert_check: false
 
 jobs:
@@ -119,26 +135,26 @@ jobs:
   - task: init-dynatrace-task
     file: git-pipeline/deploy/cloud-foundry/ci/tasks/init-dynatrace-task.yml
     params: 
-      apitoken: ((apitoken))
-      tenanthost: ((tenanthost))
+      apitoken: ((dt_api_token))
+      tenanthost: ((dt_tenant_host))
       APP_REPO: git-carts
 
 # Build jMeter Test Image
 
-- name: build-jmeter-test-image
-  serial: true
-  public: true
-  plan:
-  - get: git-carts
-    trigger: false
-  - put: jmeter-test-image
-    params:
-      build: git-carts/test
-      cache_tag: latest
+# - name: build-jmeter-test-image
+#   serial: true
+#   public: true
+#   plan:
+#   - get: git-carts
+#     trigger: false
+#   - put: jmeter-test-image
+#     params:
+#       build: git-carts/test
+#       cache_tag: latest
 
 # CARTS
 
-- name: build-carts
+- name: maven-build
   plan:
   - get: git-carts
     trigger: true
@@ -180,216 +196,358 @@ jobs:
     params:
       file: workspace/carts-*.jar
 
-- name: deploy-carts-to-stage
+- name: deploy-to-dev
   serial: true
   public: true
   plan:
   - get: git-carts
     trigger: true
     passed:
-      - build-carts
+      - maven-build
   - get: carts-release-bucket
     passed:
-      - build-carts
+      - maven-build
   - get: git-pipeline
     trigger: false      
   - task: prepare-app-manifest
     file: git-pipeline/deploy/cloud-foundry/ci/tasks/app-manifest-prep.yml
     params:
-      PCF_APP_SUFFIX: ((pcf-stage-carts-suffix)) 
-      APP_REPO: git-carts           
+      STAGE: Dev
+      PCF_APP_SUFFIX: ((pcf-dev-carts-suffix)) 
+      APP_REPO: git-carts
+  - put: pcf-dev
+    params:
+      path: carts-release-bucket/carts-*.jar
+      manifest: app-manifest-output/manifest.yml    
+  - put: dynatrace
+    params:
+      monspecserviceenvironment: carts/Dev
+      pipelinetaskname: deploy-to-dev
+      deployversion: v1.0
+      APP_REPO: git-carts
+
+- name: run-health-check
+  serial: true
+  public: true
+  plan:
+  - aggregate:
+    - get: git-carts
+      trigger: true
+      passed:
+        - deploy-to-dev
+    - get: git-pipeline
+      trigger: false 
+  - task: run-health-check
+    file: git-pipeline/deploy/cloud-foundry/ci/tasks/jmeter-test.yml
+    params:
+      APP_REPO: git-carts
+      PRODUCTION: false
+      SCRIPT_NAME: jmeter/basiccheck.jmx
+      RESULT_DIR: HealthCheck
+      PCF_APP_SUFFIX: ((pcf-dev-carts-suffix))
+      PCF_APP_DOMAIN: ((pcf-dev-app-domain))
+      CHECK_PATH: /health
+      SERVER_PORT: 80
+      VU_COUNT: 1
+      LOOP_COUNT: 1
+      DT_LTN: HealthCheck
+      FUNC_VALIDATION: true
+      THINK_TIME: 0
+
+- name: run-functional-check
+  serial: true
+  public: true
+  plan:
+  - aggregate:
+    - get: git-carts
+      trigger: true
+      passed:
+        - run-health-check
+    - get: git-pipeline
+  - task: run-functional-check
+    file: git-pipeline/deploy/cloud-foundry/ci/tasks/jmeter-test.yml
+    params:
+      APP_REPO: git-carts
+      PRODUCTION: false
+      SCRIPT_NAME: jmeter/carts_load.jmx
+      RESULT_DIR: FuncCheck
+      PCF_APP_SUFFIX: ((pcf-dev-carts-suffix))
+      PCF_APP_DOMAIN: ((pcf-dev-app-domain))
+      CHECK_PATH: /health
+      SERVER_PORT: 80
+      VU_COUNT: 1
+      LOOP_COUNT: 1
+      DT_LTN: FuncCheck
+      FUNC_VALIDATION: true
+      AVG_RT_VALIDATION: 3000
+      THINK_TIME: 0
+
+# - name: mark-for-staging-ready
+#   serial: true
+#   public: true
+#   plan:
+#   - get: git-carts
+#     trigger: true
+#     passed:
+#       - run-functional-check
+#   - get: cf-deploy-staging
+#   - task: mark-for-staging
+#     config:
+#       platform: linux
+#       image_resource:
+#         type: docker-image
+#         source:
+#           repository: concourse/buildroot
+#           tag: git
+#       inputs:
+#       - name: cf-deploy-staging
+#       outputs:
+#       - name: cf-deploy-staging-update
+#       run:
+#         path: /bin/bash
+#         args:
+#         - -c
+#         - |
+#           set -eux
+
+#           git clone cf-deploy-staging cf-deploy-staging-update
+
+#           cd cf-deploy-staging-update/staging-ready
+#           echo "carts" >> service
+
+#           git add .
+
+#           git config --global user.name "johannes-b"
+#           git config --global user.email "johannes.braeuer@gmx.at"
+
+#           git commit -m "Mark carts service for staging ready."
+#   - put: cf-deploy-staging  
+#     params: {repository: cf-deploy-staging-update}
+
+- name: deploy-to-staging
+  serial: true
+  public: true
+  plan:
+  - get: git-carts
+    trigger: true
+    passed:
+      - run-functional-check
+  - get: carts-release-bucket
+    passed:
+      - maven-build
+  - get: git-pipeline
+    trigger: false      
+  - task: prepare-app-manifest
+    file: git-pipeline/deploy/cloud-foundry/ci/tasks/app-manifest-prep.yml
+    params:
+      STAGE: Staging
+      PCF_APP_SUFFIX: ((pcf-staging-carts-suffix)) 
+      APP_REPO: git-carts
+  - put: pcf-staging
+    params:
+      path: carts-release-bucket/carts-*.jar
+      manifest: app-manifest-output/manifest.yml             
   - put: dynatrace
     params:
       monspecserviceenvironment: carts/Staging
-      pipelinetaskname: deploy-carts-to-stage
-      deployversion: v1.0
+      pipelinetaskname: deploy-to-staging
+      deployversion: v1.0 
       APP_REPO: git-carts
-  - put: pcf-stage
-    params:
-      path: carts-release-bucket/carts-*.jar
-      manifest: app-manifest-output/manifest.yml
 
-- name: health-check
-  serial: true
-  public: true
-  plan:
-  - aggregate:
-    - get: git-carts
-      trigger: true
-      passed:
-        - deploy-carts-to-stage
-    - get: git-jmeter-as-container
-    - get: git-pipeline
-  - task: run-health-check
-    file: git-pipeline/deploy/cloud-foundry/ci/tasks/health-test.yml
-    params:
-      APP_REPO: git-jmeter-as-container
-      FUNC_VALIDATION: yes
-      PRODUCTION: false
-      SCRIPT_NAME: basiccheck.jmx
-      PCF_APP_SUFFIX: ((pcf-stage-carts-suffix))
-      PCF_APP_DOMAIN: ((pcf-prod-app-domain))
-      DT_LTN: HealthCheck
-      VUCount: 1
-      LoopCount: 1
-          
-- name: deploy-carts-to-prod
+- name: run-e2e-check
   serial: true
   public: true
   plan:
   - get: git-carts
     trigger: true
     passed:
-      - health-check
-  - get: carts-release-bucket
-    passed:
-      - build-carts
+     - deploy-to-staging
   - get: git-pipeline
-    trigger: false      
-  - task: get-current-app-color
-    file: git-pipeline/deploy/cloud-foundry/ci/tasks/current-app-get-info.yml
-    params:
-      PCF_APP_SUFFIX: ((pcf-prod-carts-suffix))
-      PCF_API: ((pcf-prod-api))
-      PCF_ORG: ((pcf-prod-organization))
-      PCF_USER: ((pcf-prod-deploy-username))
-      PCF_PWD: ((pcf-prod-deploy-password))
-      PCF_SPACE: ((pcf-prod-space))   
-  - task: prepare-app-manifest
-    file: git-pipeline/deploy/cloud-foundry/ci/tasks/app-manifest-prep.yml
-    params:
-      PCF_APP_SUFFIX: ((pcf-prod-carts-suffix)) 
+  - task: run-e2e-check
+    file: git-pipeline/deploy/cloud-foundry/ci/tasks/jmeter-test.yml
+    params:    
       APP_REPO: git-carts
-      PRODUCTION: true                 
-  - put: dynatrace
-    params:
-      monspecserviceenvironment: carts/Production
-      pipelinetaskname: deploy-carts-to-prod
-      deployversion: v1.0 
-      APP_REPO: git-carts 
-  - put: pcf-production
-    params:
-      path: carts-release-bucket/carts-*.jar
-      manifest: app-manifest-output/manifest.yml  
-
-- name: execute-carts-load-tests
-  serial: true
-  public: true
-  plan:
-  - aggregate:
-    - get: git-carts
-      trigger: true
-      passed:
-       - deploy-carts-to-prod
-    - get: git-jmeter-as-container
-    - get: git-pipeline
-  - task: get-current-app-color
-    file: git-pipeline/deploy/cloud-foundry/ci/tasks/current-app-get-info.yml
-    params:
-      PCF_APP_SUFFIX: ((pcf-prod-carts-suffix))
-      PCF_API: ((pcf-prod-api))
-      PCF_ORG: ((pcf-prod-organization))
-      PCF_USER: ((pcf-prod-deploy-username))
-      PCF_PWD: ((pcf-prod-deploy-password))
-      PCF_SPACE: ((pcf-prod-space))   
-  - task: run-load-test
-    file: git-pipeline/deploy/cloud-foundry/ci/tasks/load-tests.yml
-    params:
-      APP_REPO: git-jmeter-as-container
-      FUNC_VALIDATION: yes
-      PRODUCTION: true
-      SCRIPT_NAME: cart_load.jmx
-      PCF_APP_SUFFIX: ((pcf-prod-carts-suffix))
-      PCF_APP_DOMAIN: ((pcf-prod-app-domain))
-      DT_LTN: LoadTest
-      VUCount: 5
-      LoopCount: 20 
+      #APP_REPO: git-pipeline               ### normally, use front-end e2e test for e2e-testing.
+      PRODUCTION: false
+      SCRIPT_NAME: jmeter/carts_load.jmx
+      #SCRIPT_NAME: deploy/cloud-foundry/ci/jmeter/front-end_e2e_load.jmx
+      RESULT_DIR: e2eCheck
+      PCF_APP_SUFFIX: ((pcf-staging-carts-suffix))
+      #PCF_APP_SUFFIX: ((pcf-staging-front-end-suffix))
+      PCF_APP_DOMAIN: ((pcf-staging-app-domain))
+      SERVER_PORT: 80
+      VU_COUNT: 10
+      LOOP_COUNT: 25 # 5
+      DT_LTN: e2eCheck
+      FUNC_VALIDATION: false
+      AVG_RT_VALIDATION: 3000
+      THINK_TIME: 0
   - task: push-dynatrace-monspec-data
     file: git-pipeline/deploy/cloud-foundry/ci/tasks/push-dynatrace-monspec-data.yml
     params: 
-      monspecserviceenvironment: carts/Production-$NEXT_APP_COLOR
-      apitoken: ((apitoken))
-      tenanthost: ((tenanthost))
+      monspecserviceenvironment: carts/Staging
+      apitoken: ((dt_api_token))
+      tenanthost: ((dt_tenant_host))
       APP_REPO: git-carts  
 
-- name: validate-carts-load-test
+- name: validate-e2e-check
   serial: true
   public: true
   plan:
   - get: git-carts
     trigger: true
     passed:
-      - execute-carts-load-tests
+      - run-e2e-check
   - get: git-pipeline
     trigger: false      
-  - task: get-current-app-color
-    file: git-pipeline/deploy/cloud-foundry/ci/tasks/current-app-get-info.yml
-    params:
-      PCF_APP_SUFFIX: ((pcf-prod-carts-suffix))
-      PCF_API: ((pcf-prod-api))
-      PCF_ORG: ((pcf-prod-organization))
-      PCF_USER: ((pcf-prod-deploy-username))
-      PCF_PWD: ((pcf-prod-deploy-password))
-      PCF_SPACE: ((pcf-prod-space))    
   - task: validate-via-monspec
     file: git-pipeline/deploy/cloud-foundry/ci/tasks/validate-via-monspec.yml
     params: 
-      monspeccomparison: carts/Production-$NEXT_APP_COLOR\ToProduction-$CURRENT_APP_COLOR\Last5m
-      apitoken: ((apitoken))
-      tenanthost: ((tenanthost))
+      monspeccomparison: carts/StagingToStagingLastHour
+      apitoken: ((dt_api_token))
+      tenanthost: ((dt_tenant_host))
       APP_REPO: git-carts   
 
-- name: promote-new-version-carts
+- name: deploy-to-production
   serial: true
   public: true
   plan:
   - get: git-carts
     trigger: true
     passed:
-      - execute-carts-load-tests
+      - validate-e2e-check
+  - get: carts-release-bucket
+    passed:
+      - maven-build
   - get: git-pipeline
     trigger: false      
   - task: get-current-app-color
     file: git-pipeline/deploy/cloud-foundry/ci/tasks/current-app-get-info.yml
     params:
-      PCF_APP_SUFFIX: ((pcf-prod-carts-suffix))
-      PCF_API: ((pcf-prod-api))
-      PCF_ORG: ((pcf-prod-organization))
-      PCF_USER: ((pcf-prod-deploy-username))
-      PCF_PWD: ((pcf-prod-deploy-password))
-      PCF_SPACE: ((pcf-prod-space))   
+      PCF_APP_SUFFIX: ((pcf-production-carts-suffix))
+      PCF_API: ((pcf-production-api))
+      PCF_ORG: ((pcf-production-organization))
+      PCF_SPACE: ((pcf-production-space))  
+      PCF_USER: ((pcf-username))
+      PCF_PWD: ((pcf-password))
+  - task: prepare-app-manifest
+    file: git-pipeline/deploy/cloud-foundry/ci/tasks/app-manifest-prep.yml
+    params:
+      STAGE: Production 
+      PCF_APP_SUFFIX: ((pcf-production-carts-suffix)) 
+      APP_REPO: git-carts                
+  - put: pcf-production
+    params:
+      path: carts-release-bucket/carts-*.jar
+      manifest: app-manifest-output/manifest.yml
+  - put: dynatrace
+    params:
+      monspecserviceenvironment: carts/Production
+      pipelinetaskname: deploy-to-production
+      deployversion: v1.0 
+      APP_REPO: git-carts 
+
+- name: promote-new-version
+  serial: true
+  public: true
+  plan:
+  - get: git-carts
+    trigger: true
+    passed:
+      - deploy-to-production
+  - get: git-pipeline
+    trigger: false      
+  - task: get-current-app-color
+    file: git-pipeline/deploy/cloud-foundry/ci/tasks/current-app-get-info.yml
+    params:
+      PCF_APP_SUFFIX: ((pcf-production-carts-suffix))
+      PCF_API: ((pcf-production-api))
+      PCF_ORG: ((pcf-production-organization))
+      PCF_SPACE: ((pcf-production-space))  
+      PCF_USER: ((pcf-username))
+      PCF_PWD: ((pcf-password))
   - task: switch-app-routes
     file: git-pipeline/deploy/cloud-foundry/ci/tasks/update-routes.yml
     params:
-      PCF_APP_SUFFIX: ((pcf-prod-carts-suffix))
-      PCF_API: ((pcf-prod-api))
-      PCF_ORG: ((pcf-prod-organization))
-      PCF_USER: ((pcf-prod-deploy-username))
-      PCF_PWD: ((pcf-prod-deploy-password))
-      PCF_SPACE: ((pcf-prod-space))
-      PCF_APP_DOMAIN: ((pcf-prod-app-domain))
+      PCF_APP_SUFFIX: ((pcf-production-carts-suffix))
+      PCF_APP_DOMAIN: ((pcf-production-app-domain))
+      PCF_API: ((pcf-production-api))
+      PCF_ORG: ((pcf-production-organization))
+      PCF_SPACE: ((pcf-production-space))
+      PCF_USER: ((pcf-username))
+      PCF_PWD: ((pcf-password))
 
-- name: upload-carts-git-release
+#- name: upload-carts-git-release
+#  public: true
+#  plan:
+#  - aggregate:
+#    - get: git-carts
+#      trigger: true
+#      passed: 
+#        - promote-new-version-carts
+#    - get: carts-release-bucket
+#    - get: git-pipeline
+#    - get: version
+#      params: { pre: build }
+#  - task: create-carts-release-info
+#    file: git-pipeline/deploy/cloud-foundry/ci/tasks/prepare-release.yml
+#    params:
+#      APP_NAME: carts
+#  - put: carts-release
+#    params:
+#      name: prepared-release/name
+#      tag: prepared-release/tag
+#      globs:
+#      - carts-release-bucket/carts-*.jar
+#  - put: version
+#    params: { file: version/number }
+
+- name: run-performance-check
+  serial: true
   public: true
   plan:
   - aggregate:
     - get: git-carts
-      trigger: true
-      passed: 
-        - promote-new-version-carts
-    - get: carts-release-bucket
+      trigger: false
     - get: git-pipeline
-    - get: version
-      params: { pre: build }
-  - task: create-carts-release-info
-    file: git-pipeline/deploy/cloud-foundry/ci/tasks/prepare-release.yml
+  - task: run-performance-check
+    file: git-pipeline/deploy/cloud-foundry/ci/tasks/jmeter-test.yml
     params:
-      APP_NAME: carts
-  - put: carts-release
-    params:
-      name: prepared-release/name
-      tag: prepared-release/tag
-      globs:
-      - carts-release-bucket/carts-*.jar
-#  - put: version
-#    params: { file: version/number }
+      APP_REPO: git-carts
+      PRODUCTION: false
+      SCRIPT_NAME: jmeter/carts_load.jmx
+      RESULT_DIR: PerfCheck
+      PCF_APP_SUFFIX: ((pcf-dev-carts-suffix))
+      PCF_APP_DOMAIN: ((pcf-dev-app-domain))
+      SERVER_PORT: 80
+      VU_COUNT: 10
+      LOOP_COUNT: 250
+      DT_LTN: PerfCheck
+      FUNC_VALIDATION: false
+      AVG_RT_VALIDATION: 3000
+      THINK_TIME: 0
+  - task: push-dynatrace-monspec-data
+    file: git-pipeline/deploy/cloud-foundry/ci/tasks/push-dynatrace-monspec-data.yml
+    params: 
+      monspecserviceenvironment: carts/Dev
+      apitoken: ((dt_api_token))
+      tenanthost: ((dt_tenant_host))
+      APP_REPO: git-carts 
+
+- name: validate-performance-check
+  serial: true
+  public: true
+  plan:
+  - get: git-carts
+    trigger: true
+    passed:
+      - run-performance-check
+  - get: git-pipeline
+    trigger: false      
+  - task: validate-via-monspec
+    file: git-pipeline/deploy/cloud-foundry/ci/tasks/validate-via-monspec.yml
+    params: 
+      monspeccomparison: carts/DevToDevLastHour
+      apitoken: ((dt_api_token))
+      tenanthost: ((dt_tenant_host))
+      APP_REPO: git-carts 
