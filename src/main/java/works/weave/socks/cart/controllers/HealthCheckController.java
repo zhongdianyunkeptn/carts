@@ -29,7 +29,7 @@ public class HealthCheckController {
        Date dateNow = Calendar.getInstance().getTime();
 
        HealthCheck app = new HealthCheck("carts", "OK", dateNow);
-       // HealthCheck database = new HealthCheck("carts-db", "OK", dateNow);
+       HealthCheck database = new HealthCheck("carts-db", "OK", dateNow);
 
        /*
        try {
@@ -40,7 +40,7 @@ public class HealthCheckController {
        */
 
        healthChecks.add(app);
-       //healthChecks.add(database);
+       healthChecks.add(database);
 
        map.put("health", healthChecks);
        return map;
