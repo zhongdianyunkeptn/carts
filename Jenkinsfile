@@ -1,6 +1,9 @@
 @Library('dynatrace@master') _
 
 pipeline {
+  parameters {
+    booleanParam(name: 'BUILD_RELEASE', defaultValue: false, description: 'Increase version number and create a new release') 
+  }
   agent {
     label 'maven'
   }
