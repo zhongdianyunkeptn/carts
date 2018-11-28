@@ -3,7 +3,6 @@ package works.weave.socks.cart.controllers;
 import static org.slf4j.LoggerFactory.getLogger;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
 
