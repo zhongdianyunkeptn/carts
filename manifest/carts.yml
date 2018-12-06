@@ -18,13 +18,13 @@ spec:
         env:
         - name: JAVA_OPTS
           value: -Xms64m -Xmx128m -XX:PermSize=32m -XX:MaxPermSize=64m -XX:+UseG1GC -Djava.security.egd=file:/dev/urandom
-        # resources:
-        #   limits:
-        #     cpu: 500m
-        #     memory: 1024Mi
-        #   requests:
-        #     cpu: 400m
-        #     memory: 512Mi
+        resources:
+          limits:
+            cpu: 500m
+            memory: 1280Mi
+          requests:
+            cpu: 400m
+            memory: 1024Mi
         ports:
         - containerPort: 8080
         volumeMounts:
@@ -41,7 +41,7 @@ spec:
           httpGet:
             path: /health
             port: 8080
-          initialDelaySeconds: 180
+          initialDelaySeconds: 120
           periodSeconds: 10
           timeoutSeconds: 15
       volumes:
