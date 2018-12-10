@@ -81,7 +81,6 @@ public class ItemsController {
     @ResponseStatus(HttpStatus.CREATED)
     @RequestMapping(consumes = MediaType.APPLICATION_JSON_VALUE, method = RequestMethod.POST)
     public Item addToCart(@PathVariable String customerId, @RequestBody Item item) throws Exception {
-        
         try {
             int millis = Integer.parseInt(delayInMillis);
             Thread.sleep(millis);
