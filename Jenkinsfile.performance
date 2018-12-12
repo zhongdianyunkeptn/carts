@@ -1,5 +1,17 @@
 @Library('dynatrace@master') _
 
+def tagMatchRules = [
+  [
+    meTypes: [
+      [meType: 'SERVICE']
+    ],
+    tags : [
+      [context: 'CONTEXTLESS', key: 'app', value: 'carts'],
+      [context: 'CONTEXTLESS', key: 'environment', value: 'dev']
+    ]
+  ]
+]
+
 pipeline {
   agent {
     label 'git'
@@ -15,17 +27,7 @@ pipeline {
         recordDynatraceSession(
           envId: 'Dynatrace Tenant',
           testCase: 'loadtest',
-          tagMatchRules: [
-            [
-              meTypes: [
-                [meType: 'SERVICE']
-              ],
-              tags: [
-                [context: 'CONTEXTLESS', key: 'app', value: "${env.APP_NAME}"],
-                [context: 'CONTEXTLESS', key: 'environment', value: 'dev']
-              ]
-            ]
-          ]
+          tagMatchRules: tagMatchRules
         ) 
         {
           container('jmeter') {
