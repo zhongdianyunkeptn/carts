@@ -1,5 +1,6 @@
 package works.weave.socks.cart.middleware;
 
+/*
 import io.prometheus.client.Histogram;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -98,3 +99,4 @@ public class HTTPMonitoringInterceptor implements HandlerInterceptor {
         return this.urlPatterns;
     }
 }
+*/

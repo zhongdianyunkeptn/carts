@@ -1,9 +1,7 @@
 package works.weave.socks.cart.configuration;
 
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.web.servlet.handler.MappedInterceptor;
-import works.weave.socks.cart.middleware.HTTPMonitoringInterceptor;
+//import works.weave.socks.cart.middleware.HTTPMonitoringInterceptor;
 
 @Configuration
 public class WebMvcConfig {
