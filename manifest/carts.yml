@@ -34,14 +34,14 @@ spec:
           httpGet:
             path: /health
             port: 8080
-          initialDelaySeconds: 120
+          initialDelaySeconds: 60
           periodSeconds: 10
           timeoutSeconds: 15
         readinessProbe:
           httpGet:
             path: /health
             port: 8080
-          initialDelaySeconds: 120
+          initialDelaySeconds: 60
           periodSeconds: 10
           timeoutSeconds: 15
       volumes:
