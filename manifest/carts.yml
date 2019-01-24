@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: carts
-        image: dynatracesockshop/carts:0.5.0
+        image: dynatracesockshop/carts:0.6.0
         env:
         - name: JAVA_OPTS
           value: -Xms128m -Xmx512m -XX:PermSize=128m -XX:MaxPermSize=128m -XX:+UseG1GC -Djava.security.egd=file:/dev/urandom
