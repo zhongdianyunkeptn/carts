@@ -6,7 +6,8 @@ def tagMatchRules = [
       [meType: 'SERVICE']
     ],
     tags : [
-      [context: 'CONTEXTLESS', key: 'app', value: 'carts'],
+      [context: 'CONTEXTLESS', key: 'app', value: 'sockshop'],
+      [context: 'CONTEXTLESS', key: 'service', value: 'carts'],
       [context: 'CONTEXTLESS', key: 'environment', value: 'dev']
     ]
   ]
@@ -17,7 +18,7 @@ pipeline {
     label 'git'
   }
   environment {
-    APP_NAME = "carts"
+    SERVICE_NAME = "carts"
   }
   stages {
     stage('Performance Check') {
@@ -33,9 +34,9 @@ pipeline {
           container('jmeter') {
             script {
               def status = executeJMeter ( 
-                scriptName: "jmeter/${env.APP_NAME}_perfcheck.jmx",
-                resultsDir: "PerfCheck_${env.APP_NAME}",
-                serverUrl: "${env.APP_NAME}.dev", 
+                scriptName: "jmeter/${env.SERVICE_NAME}_perfcheck.jmx",
+                resultsDir: "PerfCheck_${env.SERVICE_NAME}",
+                serverUrl: "${env.SERVICE_NAME}.dev", 
                 serverPort: 80,
                 checkPath: '/health',
                 vuCount: 10,
@@ -55,7 +56,7 @@ pipeline {
         perfSigDynatraceReports(
           envId: 'Dynatrace Tenant', 
           nonFunctionalFailure: 1, 
-          specFile: "monspec/${env.APP_NAME}_perfsig.json"
+          specFile: "monspec/${env.SERVICE_NAME}_perfsig.json"
         ) 
       }
     }
