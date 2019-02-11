@@ -13,7 +13,7 @@
                     },
                     {
                         "context" : "CONTEXTLESS",
-                        "key" : "app",
+                        "key" : "service",
                         "value" : "carts"
                     }
                 ]
