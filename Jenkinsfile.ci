@@ -12,12 +12,13 @@ pipeline {
     TAG_DEV = "${env.TAG}:${env.VERSION}-${env.BUILD_NUMBER}"
   }
   stages {
-    stage('Maven build') {
+    /*
+    stage('Send event') {
       steps {
         checkout scm
         container("curl") {
           sendCloudEvent(
-            receiver: 'event-broker.keptn.svc.cluster.local/keptn',
+            receiver: 'event-broker.keptn.svc.cluster.local/docker',
             type: 'sh.keptn.events.new-artefact',
             source: 'Jenkins', 
             data: [
@@ -32,7 +33,7 @@ pipeline {
         }
       }
     }
-    /*
+    */
     stage('Maven build') {
       steps {
         checkout scm
@@ -65,6 +66,5 @@ pipeline {
         }
       }
     }
-    */
   }
 }
