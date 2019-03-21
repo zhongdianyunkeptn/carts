@@ -48,6 +48,8 @@ public class ItemsController {
     private String delayInMillis;
     @Value("0")
     private String promotionRate;
+    @Value("${endpoints.prometheus.enabled}")
+    private String prometheusEnabled;
 
     static final Counter requests = Counter.build()
     	.name("requests_total").help("Total number of requests.").register();
@@ -93,8 +95,12 @@ public class ItemsController {
     @ResponseStatus(HttpStatus.CREATED)
     @RequestMapping(consumes = MediaType.APPLICATION_JSON_VALUE, method = RequestMethod.POST)
     public Item addToCart(@PathVariable String customerId, @RequestBody Item item) throws Exception {
-        requests.inc();
-        Histogram.Timer requestTimer = requestLatency.startTimer();
+        Histogram.Timer requestTimer = null;
+
+        if (prometheusEnabled.equals("true")) {
+            requests.inc();
+            requestTimer = requestLatency.startTimer();
+        }
 
         try {
             try {
@@ -125,7 +131,9 @@ public class ItemsController {
             }
         }
         finally {
-            requestTimer.observeDuration();
+            if (prometheusEnabled.equals("true") && requestTimer != null) {
+                requestTimer.observeDuration();
+            }
         }
     }
 
