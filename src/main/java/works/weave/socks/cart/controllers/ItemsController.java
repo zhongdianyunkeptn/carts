@@ -26,8 +26,15 @@ import works.weave.socks.cart.item.FoundItem;
 import works.weave.socks.cart.item.ItemDAO;
 import works.weave.socks.cart.item.ItemResource;
 
+import io.prometheus.client.spring.boot.EnablePrometheusEndpoint;
+import io.prometheus.client.spring.boot.EnableSpringBootMetricsCollector;
+import io.prometheus.client.Counter;
+import io.prometheus.client.Histogram;
+
 @RestController
 @RequestMapping(value = "/carts/{customerId:.*}/items")
+@EnablePrometheusEndpoint
+@EnableSpringBootMetricsCollector
 public class ItemsController {
     private final Logger LOG = getLogger(getClass());
 
@@ -41,6 +48,11 @@ public class ItemsController {
     private String delayInMillis;
     @Value("0")
     private String promotionRate;
+
+    static final Counter requests = Counter.build()
+    	.name("requests_total").help("Total number of requests.").register();
+    static final Histogram requestLatency = Histogram.build()
+		.name("requests_latency_seconds").help("Request latency in seconds.").register();
 
     @ResponseStatus(HttpStatus.OK)
     @RequestMapping(value = "/{itemId:.*}", produces = MediaType.APPLICATION_JSON_VALUE, method = RequestMethod.GET)
@@ -81,31 +93,39 @@ public class ItemsController {
     @ResponseStatus(HttpStatus.CREATED)
     @RequestMapping(consumes = MediaType.APPLICATION_JSON_VALUE, method = RequestMethod.POST)
     public Item addToCart(@PathVariable String customerId, @RequestBody Item item) throws Exception {
+        requests.inc();
+        Histogram.Timer requestTimer = requestLatency.startTimer();
+
         try {
-            int millis = Integer.parseInt(delayInMillis);
-            Thread.sleep(millis);
-        } catch (Throwable e) {
-            // don't do anything
+            try {
+                int millis = Integer.parseInt(delayInMillis);
+                Thread.sleep(millis);
+            } catch (Throwable e) {
+                // don't do anything
+            }
+
+            int promRate = Integer.parseInt(promotionRate);
+            if (promRate >= (Math.random() * 100)) {
+                throw new Exception("promotion campaign not yet implemented");
+            }
+
+            // If the item does not exist in the cart, create new one in the repository.
+            FoundItem foundItem = new FoundItem(() -> cartsController.get(customerId).contents(), () -> item);
+
+            if (!foundItem.hasItem()) {
+                Supplier<Item> newItem = new ItemResource(itemDAO, () -> item).create();
+                LOG.debug("Did not find item. Creating item for user: " + customerId + ", " + newItem.get());
+                new CartResource(cartDAO, customerId).contents().get().add(newItem).run();
+                return item;
+            } else {
+                Item newItem = new Item(foundItem.get(), foundItem.get().quantity() + 1);
+                LOG.debug("Found item in cart. Incrementing for user: " + customerId + ", " + newItem);
+                updateItem(customerId, newItem);
+                return newItem;
+            }
         }
-
-        int promRate = Integer.parseInt(promotionRate);
-        if (promRate >= (Math.random() * 100)) {
-            throw new Exception("promotion campaign not yet implemented");
-        }
-
-        // If the item does not exist in the cart, create new one in the repository.
-        FoundItem foundItem = new FoundItem(() -> cartsController.get(customerId).contents(), () -> item);
-
-        if (!foundItem.hasItem()) {
-            Supplier<Item> newItem = new ItemResource(itemDAO, () -> item).create();
-            LOG.debug("Did not find item. Creating item for user: " + customerId + ", " + newItem.get());
-            new CartResource(cartDAO, customerId).contents().get().add(newItem).run();
-            return item;
-        } else {
-            Item newItem = new Item(foundItem.get(), foundItem.get().quantity() + 1);
-            LOG.debug("Found item in cart. Incrementing for user: " + customerId + ", " + newItem);
-            updateItem(customerId, newItem);
-            return newItem;
+        finally {
+            requestTimer.observeDuration();
         }
     }
 
