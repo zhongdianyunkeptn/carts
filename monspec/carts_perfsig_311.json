@@ -1,0 +1,18 @@
+{
+  "timeseries" : [
+      {
+          "timeseriesId" : "com.dynatrace.builtin:service.responsetime",
+          "aggregation" : "avg",
+          "tags" : "service:carts,environment:ENV_PLACEHOLDER",
+          "upperSevere" : 850.0,
+          "upperWarning" : 600.0
+      },
+      {
+          "timeseriesId" : "com.dynatrace.builtin:service.failurerate",
+          "aggregation" : "avg",
+          "tags" : "service:carts,environment:ENV_PLACEHOLDER",
+          "upperSevere" : 7.0,
+          "upperWarning" : 1.0
+      }
+  ]
+}
