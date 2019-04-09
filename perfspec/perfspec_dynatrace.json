@@ -2,25 +2,19 @@
   "spec_version": "1.0",
   "indicators": [
     {
-      "id": "P90_ResponseTime_Backend",
+      "id": "ResponseTime_Backend",
       "source": "Dynatrace",
       "query": {
         "timeseriesId": "com.dynatrace.builtin:service.responsetime",
         "aggregation": "AVG",
         "startTimestamp": "",
-        "endTimestamp": "",
-        "tags": [
-          "service:carts",
-          "environment:ENV_PLACEHOLDER"
-        ]
+        "endTimestamp": ""
       },
       "grading": {
         "type": "Threshold",
         "thresholds": {
           "upperSevere": 1000000,
-          "upperWarning": 800000,
-          "lowerWarning ": 200000,
-          "lowerSevere": 100000
+          "upperWarning": 800000
         },
         "metricScore": 100
       }
