@@ -104,7 +104,7 @@ public class ItemsController {
 
         try {
             try {
-                int millis = Integer.parseInt(delayInMillis);
+                int millis = Integer.parseInt(this.delayInMillis.trim());
                 Thread.sleep(millis);
             } catch (Throwable e) {
                 // don't do anything
