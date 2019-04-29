@@ -11,6 +11,7 @@ spec:
       labels:
         app: carts
         version: v1
+        deployment: carts
     spec:
       containers:
       - name: carts
@@ -22,10 +23,18 @@ spec:
           value: "application=sockshop"
         - name: DT_CUSTOM_PROP
           value: "SERVICE_TYPE=BACKEND"
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: "metadata.name"
         - name: KUBERNETES_NAMESPACE
           valueFrom:
             fieldRef:
               fieldPath: "metadata.namespace"
+        - name: DEPLOYMENT_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: "metadata.labels['deployment']"
         - name: CONTAINER_IMAGE
           value: dynatracesockshop/carts:0.6.0
         resources:
