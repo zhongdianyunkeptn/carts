@@ -5,7 +5,7 @@ services:
 - docker
 before_install:
 - export TZ=Europe/Vienna
-- IMAGE=$TRAVIS_REPO_SLUG
+- IMAGE=keptnexamples/carts
 - REGISTRY_USER=dirkwallerstorfer
 - VERSION="$(cat version)"
 - DATE="$(date +'%Y%m%d.%H%M')"
