@@ -3,7 +3,7 @@ apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
   name: carts
-  namespace: dev
+  namespace: default
 spec:
   replicas: 1
   template:
@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: carts
-        image: dynatracesockshop/carts:0.6.0
+        image: keptn-sockshop/carts:0.7.0
         env:
         - name: JAVA_OPTS
           value: -Xms128m -Xmx512m -XX:PermSize=128m -XX:MaxPermSize=128m -XX:+UseG1GC -Djava.security.egd=file:/dev/urandom
@@ -36,7 +36,7 @@ spec:
             fieldRef:
               fieldPath: "metadata.labels['deployment']"
         - name: CONTAINER_IMAGE
-          value: dynatracesockshop/carts:0.6.0
+          value: keptn-sockshop/carts:0.7.0
         resources:
           limits:
             cpu: 500m
@@ -76,7 +76,7 @@ metadata:
   name: carts
   labels:
     app: carts
-  namespace: dev
+  namespace: default
 spec:
   ports:
   - name: http
